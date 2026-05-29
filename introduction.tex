@@ -1,0 +1,80 @@
+%!TEX root = thesis.tex
+\chapter{Introduction}
+\label{chap:introduction}
+
+% ============================================================
+% PLACEHOLDER — text will be added section by section
+% during the subchapter review pass with Gard.
+% ============================================================
+
+\section{Wind Turbines and the Importance of Operational Context}
+\label{sec:intro:context}
+
+Wind turbines are complex pieces of machinery that operate across a wide range of
+conditions. At lower wind speeds, the turbine sits in standby not producing anything.
+As the wind picks up, the control system gradually spins up the rotor, the generator
+engages and the turbine begins producing power. At higher wind speeds, the turbine
+operates in a partial load state where the goal is to extract as much energy as possible
+from the wind. Above a rated wind speed limit, the turbine has reached its maximum power
+output and the control system is actively limiting power production by adjusting the blade
+pitch angle. At extreme wind speeds, the turbine shuts down entirely to protect itself
+from damage.
+
+Each of these operating states, and the transitions between them, produces its own
+pattern in the SCADA data. Wind speed, rotor RPM and blade pitch angle all behave
+according to different physical laws in each state. In partial load, for example, the
+power output follows a cubic relationship with wind speed and blade pitch is held at
+zero degrees to maximise aerodynamic efficiency. In full load, the same power output
+is held constant while blade pitch increases actively to limit rotor torque. A model
+that does not know which of these two states the turbine is in will struggle to make
+sense of either one.
+
+This is the core problem that motivates this thesis. Before any other analysis of
+SCADA data can be done reliably, before fault detection, before power curve modelling,
+before degradation tracking, the operating state of the turbine must be identified.
+This thesis calls this problem operational zone classification.
+
+\section{SCADA Systems in Wind Turbine Monitoring}
+\label{sec:intro:scada}
+
+% TODO
+
+\section{Operational Zones: Definition and Importance}
+\label{sec:intro:zones}
+
+% TODO
+
+\section{Prognostics, Health Management, and Digital Twins}
+\label{sec:intro:phm}
+
+% TODO
+
+\section{Approaches to Zone Classification}
+\label{sec:intro:approaches}
+
+% TODO
+
+\section{Research Gap and Motivation}
+\label{sec:intro:gap}
+
+% TODO
+
+\section{Research Questions}
+\label{sec:intro:rq}
+
+% TODO
+
+\section{Scope and Delimitations}
+\label{sec:intro:scope}
+
+% TODO
+
+\section{Research Method}
+\label{sec:intro:method}
+
+% TODO
+
+\section{Thesis Structure}
+\label{sec:intro:structure}
+
+% TODO

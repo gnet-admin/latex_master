@@ -1,0 +1,111 @@
+%****************************************************************
+% Physics-Guided Machine Learning for Wind Turbine
+% Operational Zone Classification:
+% From Rule Learning to Deep Reinforcement Learning
+%
+% Master Thesis — Gard Indrekvam
+% HVL — Western Norway University of Applied Sciences
+% June 2026
+%****************************************************************
+
+\newif\ifDraftMargin
+    \DraftMarginfalse
+
+\documentclass[11pt]{report}
+
+\usepackage[paper=a4paper,
+            bindingoffset=2mm,
+            hmargin=25mm,
+            vmargin=25mm,
+            pdftex]{geometry}
+
+\include{preamble}
+\include{macros}
+
+%****************************************************************
+% Title page
+%****************************************************************
+\title{
+    {\fontsize{20}{24}{\color{Maroon}\spaceduppercaps{Physics-Guided Machine Learning for Wind Turbine Operational Zone Classification: From Rule Learning to Deep Reinforcement Learning}}}
+    \author{
+        \textbf{Gard Indrekvam}\vspace{0.5cm}\\
+        Master's Thesis in Applied Computer Technology and Engineering Science \vspace{0.5cm}\\
+        Data Science Specialisation \vspace{0.5cm}\\
+        \includegraphics[scale=0.36]{logos/logo.pdf}\vspace{0.5cm}\\
+        Faculty of Engineering and Science \vspace{0.3cm}\\
+        Western Norway University of Applied Sciences
+    }
+    \date{June 2026}
+}
+
+%====================================================
+%------------------ BEGIN DOCUMENT ------------------
+%====================================================
+\begin{document}
+
+\newcommand{\TextSize}{13}
+\newcommand{\BaseLineSkip}{15}
+\fontsize{\TextSize}{\BaseLineSkip}
+\selectfont
+
+%*******************************************************
+% Title page
+%*******************************************************
+\clearpage
+\maketitle
+
+%*******************************************************
+% Frontmatter
+%*******************************************************
+\pagestyle{empty}
+\include{preface/abstract}
+\include{preface/acknowledgements}
+
+%*******************************************************
+% Table of contents
+%*******************************************************
+\clearpage
+\pagestyle{pre}
+\tableofcontents
+\clearpage
+
+%*******************************************************
+% Main chapters
+%*******************************************************
+\pagestyle{main}
+
+\include{introduction}
+\include{background}
+\include{chapter3}
+\include{chapter4}
+\include{chapter5}
+\include{conclusion}
+
+%*******************************************************
+% Bibliography
+%*******************************************************
+\clearpage
+\pagestyle{bibliography}
+\bibliographystyle{apalike}
+\addcontentsline{toc}{chapter}{\numberline{}References}
+\bibliography{thesis}
+\clearpage
+
+%*******************************************************
+% Appendices
+%*******************************************************
+\clearpage
+\pagestyle{appendix}
+\begin{appendices}
+    \include{appendix}
+\end{appendices}
+
+%*******************************************************
+% Lists
+%*******************************************************
+\clearpage
+\pagestyle{list}
+\listoftables
+\listoffigures
+
+\end{document}

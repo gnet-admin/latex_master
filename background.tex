@@ -1,0 +1,120 @@
+%!TEX root = thesis.tex
+\chapter{Background and Theory}
+\label{chap:background}
+
+% TODO — introductory paragraph
+
+\section{Wind Turbine Aerodynamics and Control}
+\label{sec:bg:aero}
+
+\subsection{Power Production and the Betz Limit}
+\label{subsec:bg:betz}
+% TODO
+
+\subsection{Turbine Control Regions}
+\label{subsec:bg:regions}
+% TODO
+
+\subsection{Blade Pitch and Generator Torque Control}
+\label{subsec:bg:control}
+% TODO
+
+\section{SCADA Systems and Condition Monitoring}
+\label{sec:bg:scada}
+
+\subsection{What SCADA Systems Measure}
+\label{subsec:bg:scada:measure}
+% TODO
+
+\subsection{Closed-Loop Data and Its Challenges}
+\label{subsec:bg:scada:closedloop}
+% TODO
+
+\subsection{Condition Monitoring Using SCADA}
+\label{subsec:bg:scada:cm}
+% TODO — when explaining that physics-based filtering/preprocessing of SCADA data improves
+% model reliability, cite: \citep{hong2025}
+% Hong et al. use physics-constrained autoencoders to remove outliers from SCADA power-curve
+% data — parallel motivation to the physics-informed zone definitions in Chapter 3.
+
+\subsection{Power Curve Modelling}
+\label{subsec:bg:scada:powercurve}
+% TODO
+
+\section{Digital Twins in Prognostics and Health Management}
+\label{sec:bg:dt}
+
+\subsection{Definitions and Concepts}
+\label{subsec:bg:dt:def}
+% TODO
+
+\subsection{Requirements for an Interpretable and Adaptive Digital Twin}
+\label{subsec:bg:dt:req}
+% TODO — when discussing the need to combine physics knowledge with data-driven models
+% in a digital twin, cite: \citep{gijon2024}
+% Gijón et al. propose a hybrid physics + ML model for wind turbine power prediction that
+% achieves 37% accuracy improvement over physics-only while remaining interpretable via SHAP.
+% Exact same principle as this thesis: physics sets the structure, data-driven fills the gaps.
+
+\section{Rule-Based Machine Learning}
+\label{sec:bg:rules}
+
+\subsection{The RIPPER Algorithm}
+\label{subsec:bg:ripper}
+% TODO
+
+\subsection{The FOIL Algorithm}
+\label{subsec:bg:foil}
+% TODO
+
+\subsection{Strengths and Limitations of Rule-Based Methods}
+\label{subsec:bg:rules:limits}
+% TODO — after explaining the discretization limitation, note that rule-based methods
+% remain an active research area. Cite: \citep{nossig2024}
+% Nössig et al. (2024) show that RIPPER and FOIL can scale to large datasets using a
+% modularity trick (compress → cluster → apply rules per cluster). This shows the algorithms
+% are still taken seriously in modern XAI research, not just historical choices.
+
+\section{Supervised Machine Learning Classifiers}
+\label{sec:bg:supervised}
+
+\subsection{Random Forests}
+\label{subsec:bg:rf}
+% TODO
+
+\subsection{Histogram Gradient Boosting}
+\label{subsec:bg:gbt}
+% TODO
+
+\subsection{Multi-Layer Perceptrons}
+\label{subsec:bg:mlp}
+% TODO
+
+\section{Deep Reinforcement Learning}
+\label{sec:bg:drl}
+
+\subsection{The Reinforcement Learning Framework}
+\label{subsec:bg:drl:framework}
+% TODO
+
+\subsection{Deep Q-Networks (DQN)}
+\label{subsec:bg:dqn}
+% TODO
+
+\subsection{Proximal Policy Optimisation (PPO)}
+\label{subsec:bg:ppo}
+% TODO
+
+\subsection{Advantage Actor-Critic (A2C)}
+\label{subsec:bg:a2c}
+% TODO
+
+\subsection{DRL in Industrial and Energy Applications}
+\label{subsec:bg:drl:industrial}
+% TODO — cite BOTH \citep{xie2023} AND \citep{didier2022} here as examples of DRL for
+% wind turbine control.
+% Xie et al. (2023): DRL (DNN+MPC) for torque and pitch control — already in thesis.
+% Didier et al. (2022): DRL (TRPO actor-critic) for pitch control of floating offshore
+% wind turbines — shows the same trend applies to the more challenging FOWT case.
+% The point: DRL is actively applied to wind energy control; this thesis applies it
+% to a different but related problem (classification rather than control).
