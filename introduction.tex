@@ -2,10 +2,28 @@
 \chapter{Introduction}
 \label{chap:introduction}
 
-% ============================================================
-% PLACEHOLDER — text will be added section by section
-% during the subchapter review pass with Gard.
-% ============================================================
+The world is building more wind turbines than ever before. Wind energy is one of
+the fastest-growing sources of electricity, and offshore wind in particular has expanded
+rapidly over the last decade. As turbines get larger and wind farms become more complex,
+the challenge of keeping them running reliably and efficiently has become more important
+and more difficult.
+
+Every modern wind turbine is equipped with a Supervisory Control and Data Acquisition
+(SCADA) system that records many measurements: wind speed, rotor speed, blade pitch angle,
+generator power output, temperatures, humidity and much more. This data is the primary
+window into the performance and health of the turbine. But the data is not always easy
+to interpret. A reading of 500~kW on the power output sensor means something very
+different if the turbine is ramping up from a standstill than if it has been running
+steadily at partial load for hours. The same sensor value can indicate healthy operation,
+a fault, or a planned control action, depending entirely on the broader context of what
+the turbine is doing at that exact moment.
+
+This thesis is about building that context. Specifically, it is about identifying which
+of a set of well-defined operating states, referred to as operational zones, a wind
+turbine is currently in. Getting this right is the first step for almost every downstream
+monitoring and diagnostics task. This thesis develops and evaluates methods for this
+classification problem using two different approaches: rule-based machine learning and
+deep reinforcement learning.
 
 \section{Wind Turbines and the Importance of Operational Context}
 \label{sec:intro:context}
