@@ -1,34 +1,36 @@
 %!TEX root = ../thesis.tex
 \chapter*{Abstract}
-\addcontentsline{toc}{chapter}{\numberline{}Abstract}
 \pagestyle{pre}
 
-% PLACEHOLDER — will be written/revised in the subchapter review pass.
-% Current draft from Word document:
+Wind turbines are equipped with sensors that record many different measurements every
+ten minutes. Making sense of these measurements is not straightforward, because a wind
+turbine behaves very differently depending on what it is doing at the time of the
+recording, whether it is in standby, ramping up, producing power at partial load, or
+running at full capacity. Without knowing which of these operating states the turbine
+is currently in, it is difficult to build reliable models for fault detection, power
+curve analysis, or maintenance planning.
 
-Wind turbines are equipped with sensors that record dozens of measurements every ten minutes.
-Making sense of these measurements is not straightforward, because a wind turbine behaves very differently
-depending on what it is doing at any given moment --- whether it is in standby, ramping up,
-producing power at partial load, or running at full capacity. Without knowing which of these
-operating states the turbine is currently in, it is difficult to build reliable models for
-fault detection, power curve analysis, or maintenance planning.
-
-This thesis develops and evaluates methods for classifying wind turbine operating states ---
-referred to as operational zones --- from SCADA sensor data. The work is structured as two
-connected studies. The first study defines eight operational zones based on turbine physics
-and trains rule-based classifiers (RIPPER and FOIL) to identify these zones automatically.
-The second study takes the same eight zones and compares deep reinforcement learning (DRL)
-agents (DQN, PPO, A2C) with supervised machine learning classifiers (Random Forest,
-Gradient Boosting, MLP) on the same task.
+This thesis develops and evaluates methods for classifying wind turbine operating
+states, referred to as operational zones, from SCADA sensor data. The work is structured
+as two connected studies. The first study defines nine operational zones based on turbine
+physics and trains rule-based classifiers (RIPPER and FOIL) to identify these zones
+automatically. The second study takes the same zones and compares deep reinforcement
+learning (DRL) agents (DQN, PPO, A2C) with supervised machine learning classifiers
+(Random Forest, Gradient Boosting, MLP) on the same task.
 
 A key finding of the second study is that a Random Forest trained on only four raw SCADA
 signals achieves 100\% accuracy on both the 2016 validation set and an independent 2017
-test set. This result confirms that the eight zone definitions are not only physically
+test set. This result confirms that the zone definitions are not only physically
 meaningful but also cleanly separable in the raw sensor space. Among the DRL agents,
-DQN with physics guardrails reaches 97.7\% accuracy on the external test --- a strong
+DQN with physics guardrails reaches 97.7\% accuracy on the external test, a strong
 result for a learning-based approach that does not require labelled training data in
 principle. A deployment pipeline comparison shows that placing DQN before a LightGBM
-meta-model reduces the number of readings flagged for human review by approximately 70\%
-compared to building a meta-model directly on RIPPER. Together, the two studies provide
-practical guidance on which approach is most suitable depending on whether labelled data
-is available, interpretability is required, or online adaptation is needed.
+meta-model reduces the number of readings flagged for human review by approximately
+70\% compared to building a meta-model directly on RIPPER. Together, the two studies
+provide practical guidance on which approach is most suitable depending on whether
+labelled data is available, interpretability is required, or online adaptation is needed.
+
+\bigskip
+\noindent\textbf{Keywords:} wind turbine, SCADA, operational zone classification,
+prognostics and health management, digital twin, rule-based machine learning, RIPPER,
+deep reinforcement learning, Random Forest
