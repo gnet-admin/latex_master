@@ -2,91 +2,429 @@
 \chapter{Deep Reinforcement Learning and Supervised Classifiers for Zone Classification}
 \label{chap:ch4}
 
-% Attribution block
 \begin{quote}
 \small
-This chapter is based on the following manuscript:\\
-\textit{Indrekvam, G., Singh, M., Kampen, A.-L. (2026).
-From Rule Learning to Deep Reinforcement Learning: Operational Zone Classification and
-Human Review Reduction for Wind Turbines. [Manuscript prepared for journal submission].}
+This chapter is based on the following manuscript:\\[4pt]
+\textit{Indrekvam, G., Singh, M., Kampen, A.-L. (2026). From Rule Learning to Deep
+Reinforcement Learning: Operational Zone Classification and Human Review Reduction for
+Wind Turbines. [Manuscript prepared for journal submission].}
 \end{quote}
 
-% TODO — introductory paragraph
+This chapter asks whether the accuracy ceiling of rule-based zone classifiers can be
+raised by methods that work directly with continuous sensor values rather than discretized
+bins. It evaluates three DRL agents (DQN, PPO, A2C) and three supervised classifiers
+(Random Forest, Gradient Boosting, MLP) on the same zone classification task, finding
+that a Random Forest trained on only four raw SCADA signals achieves 100\% classification
+accuracy across two years of data. The chapter also introduces a two-stage deployment
+pipeline in which DQN first corrects RIPPER's errors before a LightGBM meta-model flags
+the remaining uncertain predictions for human review, reducing the number of readings
+requiring manual inspection by approximately 70\%. Together, the results give
+practitioners clear guidance on which approach to use depending on whether labelled data
+is available, whether the model needs to adapt over time, or whether reducing human
+review workload is the priority.
 
 \section{Motivation}
 \label{sec:ch4:motivation}
-% TODO
+
+Chapter~3 showed that RIPPER and FOIL can classify operational zones with 91--93\%
+accuracy using interpretable rules. This is a solid result, but two questions remain
+open. First, the rules are limited by the discretization of continuous sensor values into
+bins. Can a classifier that works directly with continuous values do significantly better?
+Second, rule-based models are static and cannot update as the turbine changes. Is there a
+learning approach that could adapt over time without requiring new labelled data?
+
+Supervised classifiers address the first question directly. Random Forests and Gradient
+Boosting trees can find exact decision boundaries in continuous feature space, without the
+quantisation error introduced by binning. MLP neural networks can capture non-linear
+patterns that a combination of bin conditions cannot represent. The results in this
+chapter confirm that supervised classifiers substantially outperform the rule-based
+methods, reaching up to 100\% accuracy.
+
+DRL addresses the second question. A DRL agent learns through reward signals rather than
+labelled examples, which means it can, in principle, continue learning after deployment
+without requiring an expert to label new data. The trade-off is accuracy: as shown in
+this chapter, DRL agents are 2--7 percentage points less accurate than the best
+supervised classifiers. Whether this trade-off is acceptable depends on the specific
+deployment context.
 
 \section{Methods}
 \label{sec:ch4:methods}
 
 \subsection{Data and Feature Representation}
 \label{subsec:ch4:data}
-% TODO
+
+The same dataset as Chapter~3 is used: Wind Turbine~7 SCADA data from 2016 (training
+and validation) and Wind Turbine~11 SCADA data from 2017 (external test). The training
+set contains 41,860 samples, the validation set 10,466 samples, and the external test
+set 52,234 samples. Zone labels from Chapter~3 are used as ground truth throughout.
+
+All models use the four raw SCADA signals: wind speed, rotor RPM, blade pitch angle, and
+power output. These are normalised by fixed scales (25\,m/s, 15\,RPM, 90\textdegree,
+2000\,kW) so that all values fall roughly in the range [0, 1]. Supervised classifiers
+and DRL agents are also tested with an extended 13-feature set that adds nine
+RIPPER-derived features: the eight one-vs-rest zone probabilities from Chapter~3 plus a
+margin feature (the difference between the highest and second-highest probability). A
+low margin indicates uncertainty near a zone boundary.
 
 \subsection{RIPPER Meta-Features}
 \label{subsec:ch4:metafeatures}
-% TODO
+
+The eight RIPPER one-vs-rest models from Chapter~3 are used to generate probability
+features for every observation in the dataset. For each observation, each RIPPER model
+outputs a probability that the observation belongs to its assigned zone. These eight
+probabilities, along with the margin between the top two, form the nine RIPPER
+meta-features. The name meta-features reflects the fact that they are not raw sensor
+readings but the output of another model applied to the same sensor data.
+
+The reasoning behind using these meta-features is that the RIPPER models encode knowledge
+about the zone boundaries in a form that a downstream classifier or DRL agent can use. A
+high probability for Zone~7 and a low probability for all others gives a model a strong
+indication that the observation is in Zone~7, even before the model has seen the raw
+SCADA values. As shown in Section~\ref{subsec:ch4:results:rf100}, however, the raw SCADA
+features alone contain all the information needed. The meta-features do not add meaningful
+accuracy for supervised classifiers in this dataset.
 
 \subsection{Supervised Baselines}
 \label{subsec:ch4:baselines}
-% TODO
+
+Three supervised classifiers are trained as baselines. The Random Forest uses 300 trees
+with balanced class weights and no maximum depth limit. The Histogram Gradient Boosting
+classifier uses 300 iterations, a learning rate of 0.05, and a maximum tree depth of 8.
+The MLP uses two hidden layers of 256 units with ReLU activations, the Adam optimiser
+\citep{kingma2014}, early stopping with a 10\% internal validation split, and a maximum
+of 500 epochs. All three are trained on the full 13-feature set. The Random Forest and
+MLP are also trained on the raw 4-feature set to isolate the contribution of the RIPPER
+meta-features. All implementations use scikit-learn \citep{pedregosa2011}.
 
 \subsection{DRL Environment (RegimeEnv)}
 \label{subsec:ch4:env}
-% TODO
+
+The DRL agents are trained in a custom Gymnasium \citep{towers2023} environment called
+RegimeEnv. Each episode samples 512 consecutive timesteps from the 2016 training dataset,
+starting at a random position in the time series. At each step, the agent observes the
+current state, selects one of eight discrete actions (one per zone), receives a reward,
+and observes the next state. Episodes end after 512 steps or when the end of the dataset
+is reached.
+
+The observation has 14 dimensions: the 13 features described above plus the agent's
+previous action, encoded as a value between 0 and 1. The previous action gives the agent
+a simple form of memory, letting it take its own recent prediction into account when
+deciding the current one. This is important for physical plausibility: a turbine does not
+jump from Zone~3 to Zone~8 in a single ten-minute interval.
+
+The reward function has two components. The accuracy component gives $+2.0$ for a correct
+prediction and applies a penalty of $-1.0 - 0.15 \times d$ for an incorrect prediction,
+where $d$ is the number of zones between the predicted zone and the correct zone
+(Zone~1 through Zone~8 ordered by their physical sequence). The smoothness component
+applies an additional penalty of $-0.2$ multiplied by the size of the zone jump whenever
+the agent changes its prediction by two or more zones compared to the previous timestep.
+This discourages large, physically implausible transitions.
 
 \subsection{Physics Guardrails}
 \label{subsec:ch4:guardrails}
-% TODO
+
+Two hard rules derived from turbine physics are applied to the output of each DRL agent
+after the agent makes its prediction. If the blade pitch angle is 86\textdegree\ or
+above, the agent's prediction is overridden to Zone~1 (safety lockdown). If the blade
+pitch angle is between 24\textdegree\ and 86\textdegree, the prediction is overridden to
+Zone~2 (lockdown transition). These rules correspond to the two zones with the clearest
+physical signatures.
+
+The guardrails act as a safety net for DRL agents that may not have fully learned the
+clearest zone boundaries. They do not affect supervised classifiers, which already learn
+these boundaries from the training data. The guardrail correction rate, the fraction of
+agent predictions that are overridden, is reported for each agent as a measure of how
+often the agent's raw output violates a known physical constraint.
 
 \subsection{DRL Agents: DQN, PPO, and A2C}
 \label{subsec:ch4:agents}
-% TODO
+
+Three DRL algorithms are trained using Stable-Baselines3 \citep{raffin2021}: DQN, PPO,
+and A2C. Each agent is trained for 200,000 environment steps on RegimeEnv. A validation
+callback saves the best model checkpoint based on validation accuracy, evaluated every
+20,000 steps. The reported results use the best checkpoint rather than the final model,
+which guards against late-training performance drops.
+
+Each algorithm uses two hidden layers of 256 units with ReLU activations.
+Algorithm-specific settings are: DQN uses a learning rate of $10^{-4}$, a replay buffer
+of 100,000 transitions, and a batch size of 128; PPO uses a learning rate of
+$3 \times 10^{-4}$, $n\_steps = 2048$, a batch size of 64, and 10 training epochs per
+update; A2C uses a learning rate of $3 \times 10^{-4}$ and $n\_steps = 32$. No
+hyperparameter search was performed; the focus of this study is on comparing algorithm
+behaviour rather than maximising performance through tuning. Full hyperparameter details
+are in Appendix~B.
 
 \subsection{Evaluation Protocol}
 \label{subsec:ch4:evalprotocol}
-% TODO
+
+All models are evaluated on the 2016 validation set and the 2017 external test set. The
+primary metrics are overall accuracy and macro-averaged F1 score. For DRL agents, two
+additional metrics are reported: the average zone jump per timestep (a smoothness
+measure) and the count of large jumps (zone changes of two or more in a single step). A
+lower average jump and fewer large jumps indicate more physically plausible prediction
+sequences.
 
 \subsection{Meta-Models and Deployment Pipelines}
 \label{subsec:ch4:pipelines}
-% TODO
+
+Two deployment pipelines are built to measure how the models from this chapter can reduce
+the number of readings a human operator needs to review. Even a model with 97\% accuracy
+produces over 1,200 errors on a dataset of 52,000 readings. A secondary classifier
+trained to detect likely errors on top of the primary model is called a meta-model. Both
+pipelines use a decision threshold of 0.50.
+
+Pipeline~A extends the rule-based approach from Chapter~3 directly. RIPPER makes zone
+predictions and a Random Forest meta-model is trained on RIPPER's eight one-vs-rest
+probability outputs to predict whether each RIPPER prediction is likely to be wrong.
+Readings where the meta-model output exceeds 0.50 are flagged for human review.
+
+Pipeline~B adds DQN as a first stage. DQN processes each reading using its temporal
+context and physics guardrails, correcting most of RIPPER's errors. A LightGBM
+\citep{ke2017} meta-model then targets the residual errors from DQN. The meta-model
+takes RIPPER's eight one-vs-rest probability outputs as inputs and is trained to detect
+readings where DQN is likely to be wrong. Readings where the LightGBM output exceeds
+0.50 are flagged.
+
+Both meta-models are trained on the 2016 training set and evaluated on the 2017 external
+test set of 52,234 readings. The three evaluation metrics are: total readings flagged for
+review, recall for the underlying model's errors (the fraction of errors flagged), and
+false alarms (readings flagged but correctly classified by the underlying model).
 
 \section{Results}
 \label{sec:ch4:results}
 
 \subsection{Overall Classification Performance}
 \label{subsec:ch4:results:overall}
-% TODO — Table 4.1 goes here
+
+Table~\ref{tab:ch4:results} shows the complete results for all models on both evaluation
+sets. The most striking result is that the Random Forest trained on only the four raw
+SCADA signals achieves 100\% accuracy on both the 2016 validation set and the 2017
+external test set. The RF trained on all 13 features makes one error on the 2016
+validation set (99.99\% accuracy) and achieves 100\% on the 2017 external test. The
+Gradient Boosting classifier reaches 99.9\% on both sets. The MLP on full features
+achieves 99.4\%.
+
+\begin{table}[h]
+\centering
+\caption{Classification results for all models on the 2016 validation set (10,466
+samples) and 2017 external test set (52,234 samples).}
+\label{tab:ch4:results}
+\small
+\begin{tabular}{lcccc}
+\toprule
+\textbf{Model} & \textbf{Val Acc} & \textbf{Ext Acc} & \textbf{Val F1} & \textbf{Ext F1} \\
+\midrule
+RF (13 features)       & 99.99\% & 100.0\% & 0.999 & 1.000 \\
+GBT (13 features)      & 99.9\%  & 99.9\%  & 0.999 & 0.999 \\
+MLP (13 features)      & 99.4\%  & 99.4\%  & 0.992 & 0.993 \\
+RF (4 raw SCADA)       & 100.0\% & 100.0\% & 1.000 & 1.000 \\
+MLP (4 raw SCADA)      & 99.5\%  & 99.6\%  & 0.980 & 0.982 \\
+\midrule
+DQN + guardrails       & 97.3\%  & 97.7\%  & 0.967 & 0.968 \\
+PPO + guardrails       & 96.0\%  & 96.0\%  & 0.954 & 0.953 \\
+A2C + guardrails       & 92.7\%  & 93.4\%  & 0.847 & 0.847 \\
+DQN (no guardrails)    & 97.3\%  & 97.6\%  & 0.963 & 0.964 \\
+PPO (no guardrails)    & 95.5\%  & 95.6\%  & 0.910 & 0.909 \\
+A2C (no guardrails)    & 90.1\%  & 91.5\%  & 0.578 & 0.584 \\
+\midrule
+RIPPER (Chapter~3)     & 92.6\%  & 91.2\%  & 0.916 & 0.914 \\
+FOIL (Chapter~3)       & 92.3\%  & 91.4\%  & 0.897 & 0.896 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Among the DRL agents, DQN with guardrails achieves the best performance: 97.3\% accuracy
+on the 2016 validation set and 97.7\% on the 2017 external test. PPO with guardrails
+reaches 96.0\% on both sets. A2C with guardrails reaches 92.7\% on validation and 93.4\%
+externally. DRL agents maintain or improve their accuracy from validation to external
+test, suggesting their learned policies generalise well to the following year.
 
 \subsection{The 100\% Random Forest Result}
 \label{subsec:ch4:results:rf100}
-% TODO
+
+The 100\% accuracy of the raw-SCADA Random Forest is the most important single result in
+this chapter. It means that the eight operational zones defined in Chapter~3 are
+completely separable using only the four main SCADA signals, with no overlap whatsoever
+across more than 62,000 data points spanning two different years. Every data point falls
+unambiguously into exactly one zone.
+
+This result also explains why RIPPER and FOIL achieve only 91--92\%. The rule-based
+methods use discretized bin features rather than the raw continuous values, and the bins
+introduce quantisation error at zone boundaries. A Random Forest can place its split
+thresholds at the exact physical boundaries (for example, precisely 12\,m/s for the
+partial/full load transition), while RIPPER and FOIL are limited to the coarser bin
+boundaries defined in Section~\ref{sec:ch3:discretization}. The 8 percentage point
+accuracy gap between the rule-based models and the Random Forest is entirely explained by
+this discretization effect.
+
+For the digital twin PHM application, this result is positive. It confirms that the zone
+framework from Chapter~3 is well-designed: the zones are physically meaningful and
+cleanly separable in the raw sensor space. Any production deployment that needs fast and
+highly accurate zone identification can use a Random Forest or Gradient Boosting
+classifier with confidence.
 
 \subsection{DRL Agent Performance}
 \label{subsec:ch4:results:drl}
-% TODO
+
+DQN clearly outperforms PPO and A2C on this task. Its 97.7\% external accuracy is within
+2.3 percentage points of the supervised baselines, and its per-zone F1 scores are
+consistent across all eight zones. The DQN guardrail correction rate is extremely low:
+6 predictions out of 10,466 on validation (0.06\%), meaning the agent already respects
+the physical zone boundaries almost perfectly on its own.
+
+PPO with guardrails reaches 96.0\% and a macro-F1 of 0.954. Without guardrails, its
+Zone~2 recall drops to 0.55, meaning it misses nearly half of the transition-to-lockdown
+observations. The guardrails correct 53 of these errors on the validation set (0.51\%
+correction rate), bringing Zone~2 recall up to 1.00. This shows that PPO learns the
+Zone~2 boundary imperfectly and relies on the guardrail to handle the clearest cases.
+
+A2C shows a qualitatively different failure mode. Without guardrails, it achieves
+near-zero recall on Zone~8 (full load operation), which accounts for approximately 5.5\%
+of the validation data. The guardrails cover only Zones~1 and 2 and cannot fix this
+Zone~8 failure. Even with guardrails, A2C's macro-F1 of 0.847 on validation is
+significantly below DQN (0.967) and PPO (0.954). A2C is not recommended for this task.
 
 \subsection{Physics Guardrail Impact}
 \label{subsec:ch4:results:guardrails}
-% TODO — Table 4.2 goes here
+
+Table~\ref{tab:ch4:guardrails} shows how often each DRL agent's prediction was overridden
+by the guardrails and how this changed the macro-F1 score on the validation set.
+
+\begin{table}[h]
+\centering
+\caption{Physics guardrail correction rates and macro-F1 improvement on the 2016
+validation set.}
+\label{tab:ch4:guardrails}
+\small
+\begin{tabular}{lcccc}
+\toprule
+\textbf{Agent} & \textbf{Corrections} & \textbf{Rate (\%)} & \textbf{F1 gain} \\
+\midrule
+DQN & 6 / 10,466  & 0.06\% & $+$0.004 \\
+PPO & 53 / 10,466 & 0.51\% & $+$0.044 \\
+A2C & 273 / 10,466 & 2.61\% & $+$0.269 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+The macro-F1 improvement from guardrails is large for A2C ($+$0.269), meaningful for
+PPO ($+$0.044), and negligible for DQN ($+$0.004). This suggests that the guardrails are
+most useful for weaker DRL agents. For a well-trained DQN, they add a safety guarantee
+without changing any predictions.
 
 \subsection{Temporal Consistency}
 \label{subsec:ch4:results:temporal}
-% TODO — Table 4.3 goes here
+
+All models produce similar average zone jumps per timestep, in the range of 0.18 to 0.25
+zones. The zone-jump penalty in the DRL reward function was designed to make DRL agents
+smoother than the MLP, which has no memory of previous predictions. In practice, the MLP
+(0.23 average jump) is comparable to DQN (0.24) and PPO (0.25). The jump penalty appears
+to be too small relative to the accuracy reward to produce a noticeable smoothing effect.
+
+A2C without guardrails shows the lowest average jump (0.18) but also the lowest accuracy.
+Its low jump count reflects the fact that it is largely stuck predicting a small number
+of common zones rather than correctly tracking the turbine's actual zone sequence. Low
+variability in predictions is not the same as physically plausible predictions.
 
 \subsection{Cross-Year Generalisation}
 \label{subsec:ch4:results:crossyear}
-% TODO
+
+Most models maintain or improve their accuracy from the 2016 validation set to the 2017
+external test set. The supervised classifiers are stable within 0.1 percentage points.
+The DRL agents show slightly larger gains: DQN improves from 97.3\% to 97.7\%, A2C from
+92.7\% to 93.4\%. RIPPER drops from 92.6\% to 91.2\% and FOIL from 92.3\% to 91.4\%,
+a decrease of about 1 percentage point for both, which is consistent with the findings
+from Chapter~3. This pattern reinforces the view that the zone definitions capture stable
+physical relationships that hold across years.
 
 \subsection{Pipeline Comparison}
 \label{subsec:ch4:results:pipeline}
-% TODO — Table 4.4 goes here
+
+Table~\ref{tab:ch4:pipeline} shows the deployment pipeline comparison on the 2017
+external test set of 52,234 readings.
+
+\begin{table}[h]
+\centering
+\caption{Pipeline comparison on the 2017 external test set (52,234 readings).}
+\label{tab:ch4:pipeline}
+\small
+\begin{tabular}{lcc}
+\toprule
+\textbf{Metric} & \textbf{Pipeline A} & \textbf{Pipeline B} \\
+                & \textbf{(RIPPER + RF meta)} & \textbf{(DQN + LightGBM meta)} \\
+\midrule
+Model accuracy        & 91.2\%          & 97.7\% \\
+Errors (total)        & 4,614           & 1,221 \\
+Readings flagged      & 4,189 (8.0\%)   & 1,221 (2.3\%) \\
+Errors caught (recall)& 4,189 (90.8\%)  & 1,207 (98.9\%) \\
+False alarms          & 0               & 14 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Pipeline~A flags 4,189 readings (8.0\% of all test readings) for human review. It catches
+4,189 of RIPPER's 4,614 errors, giving a recall of 90.8\%, and produces no false alarms.
+
+Pipeline~B flags 1,221 readings (2.3\% of all test readings). It catches 1,207 of DQN's
+1,221 errors (98.9\% recall) and produces 14 false alarms. Adding DQN before the
+meta-model reduces the number of readings flagged for human review by 70.8\%, from 4,189
+to 1,221. Pipeline~B also achieves higher error recall (98.9\%) than Pipeline~A (90.8\%),
+at the cost of 14 false alarms.
+
+The efficiency gain in Pipeline~B comes from DQN eliminating most of the straightforward
+errors before the meta-model runs. After DQN has classified the data, the remaining
+errors are a much smaller and more concentrated set, mostly near narrow zone boundaries.
+The LightGBM meta-model can then target this smaller set precisely, flagging nearly all
+remaining errors with only 14 false alarms across 52,234 test readings.
 
 \section{Discussion}
 \label{sec:ch4:discussion}
-% TODO
+
+The results show that supervised classifiers dramatically outperform the rule-based
+methods from Chapter~3 on raw accuracy. A Random Forest achieves 100\% compared to
+91--93\% for RIPPER and FOIL. This is not a surprise: supervised classifiers have access
+to exact continuous feature values and can learn exact decision boundaries, while
+rule-based methods are limited by discretization. The surprise is how complete the
+separation is --- not a single error across two years and 62,000 data points for the
+Random Forest.
+
+The case for DRL is more nuanced. DQN reaches 97.7\%, a good result, but not 100\%. In
+terms of raw accuracy, there is no reason to prefer DQN over a Random Forest where
+labelled training data is available. The argument for DRL is about what happens after
+deployment. A Random Forest trained in 2016 will not update its decision boundaries when
+the turbine's behaviour shifts years later. A DRL agent that continues to receive reward
+signals from the running turbine can, in principle, adapt. This thesis does not test
+online adaptation directly, but the architecture supports it in a way that a static
+supervised classifier does not.
+
+The comparison of DQN, PPO, and A2C shows that algorithm choice matters significantly
+on this task. DQN's value-based approach, with its experience replay buffer and stable
+Q-learning updates, is well-suited to this classification problem. PPO is a reasonable
+second choice. A2C's failure on Zone~8 is a practical disqualifier for this application,
+since Zone~8 represents the highest-power operating state of the turbine.
+
+A third finding with direct operational relevance is the pipeline comparison. Adding DQN
+before a LightGBM meta-model reduces the number of readings flagged for human review
+from 4,189 (8.0\%) to 1,221 (2.3\%), a reduction of approximately 70\%. Pipeline~B also
+achieves higher error recall (98.9\%) than Pipeline~A (90.8\%), at the cost of 14 false
+alarms across 52,234 test readings. The reason for this efficiency is that DQN eliminates
+most of the straightforward errors before the meta-model runs, leaving a small and
+concentrated set of residual errors that the meta-model can target precisely. The
+practical implication is that DRL is not only a direct alternative to supervised
+classifiers but also a useful first stage in a pipeline designed to reduce human review
+workload.
 
 \section{Summary}
 \label{sec:ch4:summary}
-% TODO
+
+This chapter compared DRL agents and supervised classifiers for wind turbine operational
+zone classification. The key findings are: the Random Forest on four raw SCADA signals
+achieves 100\% accuracy on both evaluation sets (the 13-feature variant makes one error
+on the 2016 validation set). DQN with guardrails reaches 97.7\% on the external test and
+is the best DRL option. Physics guardrails are highly effective for weaker DRL agents and
+add a safety guarantee at no accuracy cost for well-trained ones. RIPPER meta-features
+do not improve supervised classifier accuracy. The deployment pipeline comparison shows
+that placing DQN before a LightGBM meta-model reduces readings flagged for human review
+by approximately 70\%, from 4,189 (8.0\%) in Pipeline~A to 1,221 (2.3\%) in
+Pipeline~B, while maintaining 98.9\% recall of DQN's remaining errors with only 14 false
+alarms across 52,234 test readings.

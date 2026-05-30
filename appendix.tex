@@ -1,51 +1,399 @@
 %!TEX root = thesis.tex
+% AI Tools Declaration is in preface/aideclaration.tex (front matter)
 
-% ============================================================
-% Appendix A — RIPPER Rule Sets
 % ============================================================
 \chapter{RIPPER Rule Sets}
 \label{app:rules}
-
-% TODO — rule sets for all 8 zones
-
 % ============================================================
-% Appendix B — Model Hyperparameters
+
+The following rules were learned by the RIPPER one-vs-rest models trained on the 2016
+dataset. Each model was trained as a binary one-vs-rest classifier for one zone. Rules
+within a zone are connected by OR: the zone is predicted if any one rule matches. Within
+a rule, conditions are connected by AND. Bin labels correspond to the discretization
+boundaries defined in Section~\ref{sec:ch3:discretization}.
+
+\section*{Zone 1 --- Safety Lockdown}
+One rule covers the entire zone. The blade pitch bin alone is sufficient.
+\begin{quote}
+\texttt{Rule 1: IF Pitch\_bin = Lockdown\_Angle\ \ THEN Zone\_1}
+\end{quote}
+
+\section*{Zone 2 --- Transition to or from Safety Lockdown}
+Seven rules cover this zone. Rule~1 is the dominant rule; the rest capture edge cases
+near zone boundaries.
+\begin{quote}
+\texttt{Rule 1: IF Pitch\_bin = Lockdown\_Transition\_Angle}\\
+\texttt{Rule 2: IF Pitch\_bin = Control\_Angle AND Wind\_bin = Low\_Gen\_Engagement AND Power\_bin = Loss\_or\_Negligible\_Power}\\
+\texttt{Rule 3: IF Pitch\_bin = Control\_Angle AND Wind\_bin = Low\_Gen\_Engagement}\\
+\texttt{Rule 4: IF Pitch\_bin = Control\_Angle AND Wind\_bin = Medium\_Wind\_Speed}\\
+\texttt{Rule 5: IF Pitch\_bin = Control\_Angle AND RPM\_bin = Torque\_Controlled\_RPM AND Wind\_bin = Very\_High\_Wind\_Speed}\\
+\texttt{Rule 6: IF RPM\_bin = Free\_Wheeling\_RPM AND Power\_bin = Very\_Low\_Power AND Wind\_bin = Medium\_Wind\_Speed}\\
+\texttt{Rule 7: IF Pitch\_bin = Control\_Angle AND Power\_bin = Medium\_Power}
+\end{quote}
+
+\section*{Zone 3 --- Standby (Low-Wind Shutdown)}
+One compact rule captures this zone completely using rotor speed and blade pitch.
+\begin{quote}
+\texttt{Rule 1: IF RPM\_bin = Stationary\_RPM AND Pitch\_bin = Standby\_Angle\ \ THEN Zone\_3}
+\end{quote}
+
+\section*{Zone 4 --- Transition to or from Standby}
+Two rules cover this zone. Rule~2 is a generalisation of Rule~1, active when wind speed
+alone is insufficient to distinguish the zone.
+\begin{quote}
+\texttt{Rule 1: IF RPM\_bin = Free\_Wheeling\_RPM AND Pitch\_bin = Standby\_Angle AND Wind\_bin = Low\_Wind\_Speed}\\
+\texttt{Rule 2: IF RPM\_bin = Free\_Wheeling\_RPM AND Pitch\_bin = Standby\_Angle}
+\end{quote}
+
+\section*{Zone 5 --- Free Wheeling (Below Cut-In)}
+Eight rules cover this zone, reflecting the broader range of sensor combinations that
+occur during free-wheeling conditions.
+\begin{quote}
+\texttt{Rule 1: IF Wind\_bin = Low\_Wind\_Speed AND Pitch\_bin = Control\_Angle AND Power\_bin = Very\_Low\_Power}\\
+\texttt{Rule 2: IF Wind\_bin = Low\_Wind\_Speed AND Pitch\_bin = Control\_Angle}\\
+\texttt{Rule 3: IF Wind\_bin = Low\_Wind\_Speed AND Pitch\_bin = Full\_Efficiency\_Angle}\\
+\texttt{Rule 4: IF Pitch\_bin = Control\_Angle AND RPM\_bin = Free\_Wheeling\_RPM AND Wind\_bin = Very\_Low\_Wind\_Speed AND Power\_bin = Very\_Low\_Power}\\
+\texttt{Rule 5: IF Pitch\_bin = Control\_Angle AND RPM\_bin = Free\_Wheeling\_RPM AND Wind\_bin = Very\_Low\_Wind\_Speed}\\
+\texttt{Rule 6: IF Wind\_bin = Low\_Gen\_Engagement AND RPM\_bin = Free\_Wheeling\_RPM AND Pitch\_bin = Full\_Efficiency\_Angle}\\
+\texttt{Rule 7: IF Pitch\_bin = Control\_Angle AND Wind\_bin = Low\_Gen\_Engagement}\\
+\texttt{Rule 8: IF RPM\_bin = Gen\_Engagement\_RPM AND Wind\_bin = Very\_Low\_Wind\_Speed}
+\end{quote}
+
+\section*{Zone 6 --- Generator Engagement (Below Cut-In)}
+Three rules cover the narrow generator engagement band. Rule~1 is the primary identifier.
+\begin{quote}
+\texttt{Rule 1: IF Wind\_bin = Low\_Gen\_Engagement AND RPM\_bin = Gen\_Engagement\_RPM}\\
+\texttt{Rule 2: IF Power\_bin = Very\_Low\_Power AND RPM\_bin = Gen\_Engagement\_RPM AND Wind\_bin = Medium\_Wind\_Speed}\\
+\texttt{Rule 3: IF Power\_bin = Very\_Low\_Power AND Wind\_bin = Low\_Gen\_Engagement AND RPM\_bin = Torque\_Controlled\_RPM}
+\end{quote}
+
+\section*{Zone 7 --- Partial Load Operation}
+Six rules cover partial load operation. The first four all require torque-controlled RPM
+and medium wind speed. Rules~5 and~6 extend coverage to high-power and high-wind
+observations.
+\begin{quote}
+\texttt{Rule 1: IF RPM\_bin = Torque\_Controlled\_RPM AND Wind\_bin = Medium\_Wind\_Speed AND Power\_bin = Low\_Power}\\
+\texttt{Rule 2: IF RPM\_bin = Torque\_Controlled\_RPM AND Wind\_bin = Medium\_Wind\_Speed AND Power\_bin = Medium\_Power AND Pitch\_bin = Full\_Efficiency\_Angle}\\
+\texttt{Rule 3: IF RPM\_bin = Torque\_Controlled\_RPM AND Wind\_bin = Medium\_Wind\_Speed AND Power\_bin = High\_Power}\\
+\texttt{Rule 4: IF RPM\_bin = Torque\_Controlled\_RPM AND Wind\_bin = Medium\_Wind\_Speed}\\
+\texttt{Rule 5: IF Power\_bin = High\_Power AND Pitch\_bin = Full\_Efficiency\_Angle}\\
+\texttt{Rule 6: IF Power\_bin = High\_Power AND RPM\_bin = Torque\_Controlled\_RPM AND Wind\_bin = High\_Wind\_Speed}
+\end{quote}
+
+\section*{Zone 8 --- Full Load Operation}
+Six rules cover full load operation. All rules involve rated RPM or high/very-high wind
+combined with control-angle pitch and high or rated power output.
+\begin{quote}
+\texttt{Rule 1: IF RPM\_bin = Rated\_RPM AND Power\_bin = Rated\_Power AND Wind\_bin = Very\_High\_Wind\_Speed}\\
+\texttt{Rule 2: IF RPM\_bin = Rated\_RPM AND Power\_bin = Rated\_Power}\\
+\texttt{Rule 3: IF RPM\_bin = Rated\_RPM AND Pitch\_bin = Control\_Angle AND Wind\_bin = Very\_High\_Wind\_Speed}\\
+\texttt{Rule 4: IF RPM\_bin = Rated\_RPM AND Pitch\_bin = Control\_Angle AND Power\_bin = High\_Power}\\
+\texttt{Rule 5: IF Wind\_bin = High\_Wind\_Speed AND Pitch\_bin = Control\_Angle AND Power\_bin = High\_Power}\\
+\texttt{Rule 6: IF RPM\_bin = Rated\_RPM AND Pitch\_bin = Control\_Angle AND Wind\_bin = High\_Wind\_Speed}
+\end{quote}
+
+The rules show clear physical logic. The simplest zones (Zone~1 and Zone~3) are captured
+by a single rule each, using only one or two conditions. The more complex zones (Zone~5
+and Zone~7) require multiple rules to cover the range of sensor combinations that occur
+during those states. In every case, the conditions correspond directly to known turbine
+control behaviour, confirming that RIPPER has learned the correct physical logic rather
+than statistical patterns specific to the 2016 training data.
+
 % ============================================================
 \chapter{Model Hyperparameters}
 \label{app:hyperparams}
-
-% TODO — Table B.1 (full hyperparameter table, 49 rows)
-
 % ============================================================
-% Appendix C — Per-Zone Classification Reports
+
+Table~\ref{tab:hyperparams} lists the hyperparameters used for all models trained in
+this thesis, covering the supervised classifiers, the DRL agents, and the meta-models.
+
+\begin{longtable}{lll}
+\caption{Hyperparameters for all models trained in this thesis.}
+\label{tab:hyperparams}\\
+\toprule
+\textbf{Model / Component} & \textbf{Hyperparameter} & \textbf{Value} \\
+\midrule
+\endfirsthead
+\toprule
+\textbf{Model / Component} & \textbf{Hyperparameter} & \textbf{Value} \\
+\midrule
+\endhead
+\bottomrule
+\endfoot
+Random Forest (base classifier) & n\_estimators & 300 \\
+ & max\_depth & None (unlimited) \\
+ & min\_samples\_leaf & 1 \\
+ & class\_weight & balanced \\
+ & random\_state & 42 \\
+\midrule
+Histogram Gradient Boosting & max\_iter & 300 \\
+ & learning\_rate & 0.05 \\
+ & max\_depth & 8 \\
+\midrule
+MLP Classifier & hidden\_layer\_sizes & (256, 256) \\
+ & activation & relu \\
+ & solver & adam \\
+ & learning\_rate\_init & 0.001 \\
+ & max\_iter & 500 \\
+ & batch\_size & 256 \\
+\midrule
+DQN & policy / network & MlpPolicy, [256, 256], ReLU \\
+ & total\_timesteps & 200,000 \\
+ & learning\_rate & $10^{-4}$ \\
+ & buffer\_size & 100,000 \\
+ & learning\_starts & 5,000 \\
+ & batch\_size & 128 \\
+ & gamma & 0.99 \\
+ & train\_freq & 4 \\
+ & target\_update\_interval & 1,000 \\
+ & exploration\_fraction & 0.2 \\
+ & exploration\_final\_eps & 0.05 \\
+\midrule
+PPO & policy / network & MlpPolicy, [256, 256], ReLU \\
+ & total\_timesteps & 200,000 \\
+ & learning\_rate & $3 \times 10^{-4}$ \\
+ & n\_steps & 2,048 \\
+ & batch\_size & 64 \\
+ & n\_epochs & 10 \\
+ & gamma & 0.99 \\
+ & gae\_lambda & 0.95 \\
+ & clip\_range & 0.2 \\
+\midrule
+A2C & policy / network & MlpPolicy, [256, 256], ReLU \\
+ & total\_timesteps & 200,000 \\
+ & learning\_rate & $3 \times 10^{-4}$ \\
+ & n\_steps & 32 \\
+ & gamma & 0.99 \\
+ & gae\_lambda & 0.95 \\
+ & ent\_coef & 0.01 \\
+\midrule
+Random Forest (RIPPER meta-model, Pipeline~A) & n\_estimators & 300 \\
+ & max\_depth & 10 \\
+ & min\_samples\_leaf & 10 \\
+ & random\_state & 42 \\
+\midrule
+LightGBM (DQN meta-model, Pipeline~B) & n\_estimators & 500 \\
+ & max\_depth & 6 \\
+ & learning\_rate & 0.05 \\
+\end{longtable}
+
 % ============================================================
 \chapter{Per-Zone Classification Reports}
 \label{app:perzone}
-
-% TODO — Table C.1 (2016 validation) and Table C.2 (2017 external test)
-
 % ============================================================
-% Appendix D — Glossary
+
+Tables~\ref{tab:perzone:val} and~\ref{tab:perzone:ext} show per-zone precision, recall,
+F1-score, and support for the two best-performing models on the 2016 validation set and
+the 2017 external test set respectively. RF refers to the Random Forest trained on four
+raw SCADA signals. DQN refers to DQN with physics guardrails.
+
+\begin{table}[h]
+\centering
+\caption{Per-zone classification report: 2016 validation set (10,466 samples).
+RF = Random Forest (4 raw SCADA signals). DQN = DQN with guardrails.}
+\label{tab:perzone:val}
+\small
+\begin{tabular}{lcccccccc}
+\toprule
+ & \multicolumn{4}{c}{\textbf{Random Forest}} & \multicolumn{3}{c}{\textbf{DQN + Guardrails}} & \\
+\textbf{Zone} & \textbf{Prec} & \textbf{Rec} & \textbf{F1} & \textbf{Sup} & \textbf{Prec} & \textbf{Rec} & \textbf{F1} & \textbf{Sup} \\
+\midrule
+Zone 1 & 1.000 & 1.000 & 1.000 & 176  & 1.000 & 1.000 & 1.000 & 176 \\
+Zone 2 & 1.000 & 1.000 & 1.000 & 97   & 1.000 & 1.000 & 1.000 & 97 \\
+Zone 3 & 1.000 & 1.000 & 1.000 & 854  & 0.929 & 1.000 & 0.963 & 854 \\
+Zone 4 & 1.000 & 1.000 & 1.000 & 1166 & 0.995 & 0.944 & 0.969 & 1166 \\
+Zone 5 & 1.000 & 1.000 & 1.000 & 724  & 0.999 & 0.954 & 0.976 & 724 \\
+Zone 6 & 1.000 & 1.000 & 1.000 & 1486 & 0.982 & 0.999 & 0.991 & 1486 \\
+Zone 7 & 1.000 & 1.000 & 1.000 & 5388 & 0.995 & 0.971 & 0.983 & 5388 \\
+Zone 8 & 1.000 & 1.000 & 1.000 & 575  & 0.777 & 0.957 & 0.857 & 575 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{table}[h]
+\centering
+\caption{Per-zone classification report: 2017 external test set (52,234 samples).
+RF = Random Forest (4 raw SCADA signals). DQN = DQN with guardrails.}
+\label{tab:perzone:ext}
+\small
+\begin{tabular}{lcccccccc}
+\toprule
+ & \multicolumn{4}{c}{\textbf{Random Forest}} & \multicolumn{3}{c}{\textbf{DQN + Guardrails}} & \\
+\textbf{Zone} & \textbf{Prec} & \textbf{Rec} & \textbf{F1} & \textbf{Sup} & \textbf{Prec} & \textbf{Rec} & \textbf{F1} & \textbf{Sup} \\
+\midrule
+Zone 1 & 1.000 & 1.000 & 1.000 & 540   & 1.000 & 1.000 & 1.000 & 540 \\
+Zone 2 & 1.000 & 1.000 & 1.000 & 452   & 0.998 & 1.000 & 0.999 & 452 \\
+Zone 3 & 1.000 & 1.000 & 1.000 & 4091  & 0.929 & 1.000 & 0.963 & 4091 \\
+Zone 4 & 1.000 & 1.000 & 1.000 & 5752  & 0.996 & 0.945 & 0.970 & 5752 \\
+Zone 5 & 1.000 & 1.000 & 1.000 & 4465  & 0.999 & 0.937 & 0.967 & 4465 \\
+Zone 6 & 1.000 & 1.000 & 1.000 & 9135  & 0.973 & 0.999 & 0.986 & 9135 \\
+Zone 7 & 1.000 & 1.000 & 1.000 & 25392 & 0.988 & 0.987 & 0.988 & 25392 \\
+Zone 8 & 1.000 & 1.000 & 1.000 & 2407  & 0.866 & 0.879 & 0.872 & 2407 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
 % ============================================================
 \chapter{Glossary}
 \label{app:glossary}
-
-% TODO — 31 term definitions
-
 % ============================================================
-% Appendix E — Source Code
+
+The following glossary defines key technical terms used throughout this thesis. Terms
+are listed alphabetically.
+
+\begin{description}
+  \item[A2C (Advantage Actor-Critic)] A synchronous deep reinforcement learning algorithm
+    that simultaneously learns a policy (actor) and a value function (critic), updating
+    both using the advantage signal, the difference between actual reward and the critic's
+    expected value estimate.
+
+  \item[Betz Limit] The theoretical maximum fraction of wind energy extractable by a
+    rotor, equal to 16/27 $\approx$ 59.3\%, derived by Albert Betz in 1919.
+
+  \item[Blade Pitch Angle] The angle at which the rotor blades are rotated about their
+    long axis. Held near 0\textdegree\ in partial load to maximise efficiency; actively
+    increased in full load to limit torque; feathered to $\approx$\,90\textdegree\ during
+    safety lockdown.
+
+  \item[Cut-In Wind Speed] The minimum wind speed at which a turbine begins generating
+    useful power, approximately 3--4\,m/s for modern offshore turbines.
+
+  \item[Cut-Out Wind Speed] The wind speed above which a turbine shuts down to prevent
+    mechanical damage, typically around 25\,m/s.
+
+  \item[Deep Q-Network (DQN)] A value-based deep reinforcement learning algorithm that
+    learns a Q-function mapping state--action pairs to expected cumulative reward, using
+    experience replay and a target network for training stability.
+
+  \item[Deep Reinforcement Learning (DRL)] A machine learning approach where a neural
+    network agent learns a decision policy through trial-and-error interaction with an
+    environment, guided by scalar reward signals rather than labelled training data.
+
+  \item[Digital Twin] A continuously updated computational model of a physical asset that
+    uses real sensor data to mirror the asset's current state, predict future behaviour,
+    and inform operational decisions.
+
+  \item[Discretization] The conversion of continuous numerical sensor values into a finite
+    set of categorical bins. Required by rule-based classifiers such as RIPPER and FOIL,
+    and the primary source of their accuracy ceiling relative to continuous-input
+    classifiers.
+
+  \item[Experience Replay] A DQN training mechanism that stores past agent transitions in
+    a memory buffer and samples random mini-batches for network updates, breaking temporal
+    correlations between consecutive training examples.
+
+  \item[FOIL (First-Order Inductive Learner)] A rule learning algorithm that builds
+    IF--THEN classification rules by iteratively adding conditions that maximise
+    information gain. Produces more specific rules than RIPPER, typically generating more
+    rules per zone.
+
+  \item[Generator Engagement] The narrow rotor speed band (approximately 11.0--11.2\,RPM
+    for this turbine) at which the rotor is connected to the grid and the generator begins
+    producing power. Corresponds to Zone~6 in this thesis.
+
+  \item[Gymnasium] An open-source Python library providing a standard API for
+    reinforcement learning environments. Used in Chapter~4 to implement the RegimeEnv
+    training environment.
+
+  \item[Histogram Gradient Boosting (GBT)] A fast variant of gradient boosting that bins
+    continuous feature values into discrete histograms before finding splits, enabling
+    efficient training on large datasets.
+
+  \item[LightGBM] A highly efficient gradient boosting framework that uses histogram-based
+    learning and leaf-wise tree growth. Used as the meta-model in Pipeline~B (Chapter~4).
+
+  \item[Macro-Averaged F1 Score] The F1 score computed independently for each class and
+    then averaged with equal weight per class, regardless of class frequency. Used in this
+    thesis to ensure rare operational zones receive the same weight as common ones.
+
+  \item[Markov Decision Process (MDP)] The formal mathematical framework for
+    reinforcement learning, defined by a tuple $(S, A, P, R, \gamma)$: state space,
+    action space, transition probabilities, reward function, and discount factor.
+
+  \item[Meta-Model] A secondary classifier trained to predict whether a primary model's
+    prediction is likely to be incorrect. Used in both deployment pipelines in Chapter~4
+    to flag uncertain predictions for human review.
+
+  \item[MLP (Multi-Layer Perceptron)] A feedforward neural network with one or more
+    hidden layers of neurons using non-linear activation functions, trained via
+    backpropagation with gradient descent.
+
+  \item[Operational Zone] A physically well-defined operating state of a wind turbine,
+    identifiable from combinations of SCADA sensor readings. This thesis defines nine
+    operational zones (Zones~1--9) covering the full operating range of the turbine.
+
+  \item[PHM (Prognostics and Health Management)] The engineering discipline concerned
+    with monitoring industrial system health, predicting failure modes before they occur,
+    and scheduling maintenance to minimise unplanned downtime.
+
+  \item[Physics Guardrails] Hard override rules derived from turbine physics applied
+    after the DRL agent makes a prediction, correcting the output whenever blade pitch
+    unambiguously indicates Zone~1 ($\geq$\,86\textdegree) or Zone~2
+    (24\textdegree--86\textdegree).
+
+  \item[Power Coefficient ($C_p$)] The dimensionless ratio of actual power extracted by
+    a rotor to the total available wind power. Modern large turbines achieve $C_p$ of
+    approximately 0.45--0.50 at their optimal operating point.
+
+  \item[PPO (Proximal Policy Optimisation)] A policy gradient deep reinforcement learning
+    algorithm that clips the policy update ratio to a safe range per training step,
+    preventing training instability while remaining simple to implement.
+
+  \item[Random Forest (RF)] An ensemble classifier that builds many decision trees on
+    random bootstrap subsamples and uses majority voting for prediction. Achieves 100\%
+    zone classification accuracy on this dataset using only four raw SCADA signals.
+
+  \item[Rated Wind Speed] The wind speed at which a turbine reaches its maximum (rated)
+    power output, typically 12--13\,m/s. The boundary between partial load (Zone~7) and
+    full load (Zone~8) operation.
+
+  \item[RIPPER (Repeated Incremental Pruning to Produce Error Reduction)] A sequential
+    covering rule induction algorithm that learns compact IF--THEN classification rules.
+    Uses a minimum description length criterion to balance accuracy against rule
+    complexity. Applied in a one-vs-rest configuration in Chapter~3.
+
+  \item[SCADA (Supervisory Control and Data Acquisition)] The integrated monitoring and
+    control system installed on modern wind turbines. Records dozens of sensor variables
+    at ten-minute averaging intervals throughout the turbine's operational lifetime.
+
+  \item[Temporal Consistency] A measure of how smoothly a model's zone predictions change
+    over consecutive timesteps. Quantified in this thesis as the average absolute
+    zone-index difference between successive predictions.
+
+  \item[Tip Speed Ratio (TSR)] The dimensionless ratio of blade tip speed to ambient
+    wind speed. The turbine control system maintains the optimal TSR during partial load
+    operation to maximise the power coefficient $C_p$.
+\end{description}
+
 % ============================================================
 \chapter{Source Code}
 \label{app:code}
-
-% TODO — GitHub reference paragraph
-
 % ============================================================
-% Appendix F — Research Data
+
+All code developed for this thesis is stored in a private GitHub repository. The
+repository is organised into two top-level directories:
+
+\begin{itemize}
+  \item \texttt{paper1\_rule\_learning}: the zone labelling pipeline, RIPPER and FOIL
+    training scripts, discretization code, and evaluation scripts for Chapter~3.
+  \item \texttt{paper2\_drl}: the DRL environment (RegimeEnv), DQN, PPO, and A2C
+    training scripts, supervised classifier training, meta-model pipelines, and
+    evaluation scripts for Chapter~4.
+\end{itemize}
+
+The code will be made available upon reasonable request to the corresponding author at
+\href{mailto:gard.indrekvam@icloud.com}{gard.indrekvam@icloud.com}.
+
 % ============================================================
 \chapter{Research Data}
 \label{app:data}
+% ============================================================
 
-% TODO — EDP dataset reference paragraph
+This thesis uses SCADA data provided by EDP (Energias de Portugal) from an offshore wind
+farm located off the west coast of Africa. The dataset covers Wind Turbine~7 (2016) and
+Wind Turbine~11 (2017) and is recorded at ten-minute resolution. The data consists
+exclusively of machine sensor readings with no personal or identifiable information.
 
-% AI Tools Declaration is in preface/aideclaration.tex (front matter)
+The dataset is available from the EDP Open Data platform. Processed zone-labelled
+datasets used in this thesis are stored alongside the source code described in
+Appendix~E.

@@ -2,85 +2,364 @@
 \chapter{Rule-Based Operational Zone Classification}
 \label{chap:ch3}
 
-% Attribution block
 \begin{quote}
 \small
-This chapter is based on the following publication:\\
+This chapter is based on the following publication:\\[4pt]
 \textit{Indrekvam, G., Singh, M., Kampen, A.-L., Jha, M.~S. (2026).
-Interpretable Operational Regime Classification for a Wind Turbine PHM Digital Twin Architecture.
-Proceedings of the 9th European Conference of the Prognostics and Health Management Society (PHME~2026).}
-
-The chapter is presented here in its thesis form, which is slightly expanded from the conference
-paper to include additional methodological detail. The numerical results presented here reflect
-the reimplemented models used consistently across both studies; minor numerical differences from
-the conference paper are a consequence of this methodological standardisation.
+Interpretable Operational Regime Classification for a Wind Turbine PHM Digital Twin
+Architecture. Proceedings of the 9th European Conference of the Prognostics and Health
+Management Society (PHME~2026).}\\[4pt]
+The chapter is presented here in its thesis form, which is slightly expanded from the
+conference paper to include additional methodological detail. The numerical results
+presented here reflect the reimplemented models used consistently across both studies;
+minor numerical differences from the conference paper are a consequence of this
+methodological standardisation.
 \end{quote}
 
 \section{Motivation and Aim}
 \label{sec:ch3:motivation}
-% TODO
+
+The starting point for this study is a practical problem: wind turbine SCADA data cannot
+be analysed reliably without knowing which operating state the turbine is in. A power
+curve model that mixes data from partial load and full load will be inaccurate for both.
+A fault detection system that cannot tell the difference between a zone transition and a
+genuine anomaly will generate constant false alarms. The aim of this study is to build a
+framework that solves this problem in a way that is both accurate and interpretable.
+
+Interpretability is a specific requirement here, not just a nice-to-have. The zone
+definitions must be explainable to a turbine operator or maintenance engineer who may not
+have a machine learning background. If the classification rules cannot be read and checked
+by a domain expert, it is very difficult to verify that they are correct or to diagnose
+errors when the classifier makes a mistake. Rule-based methods are chosen specifically
+because they produce readable IF--THEN rules that can be checked against known turbine
+physics.
+
+A second aim of this study is to produce a set of physics-informed zone labels that can
+serve as training data for the machine learning models in Chapter~4. The zone framework
+is therefore both the output of this study and an input to the next. The quality of the
+zone labels directly determines the quality of every model trained on them.
 
 \section{Data}
 \label{sec:ch3:data}
-% TODO
+
+This study uses SCADA data provided by EDP from Wind Turbine~7 of an offshore wind farm
+located off the west coast of Africa. The turbine is a horizontal-axis offshore wind
+turbine with a rated power of approximately 2\,MW. Data is available at ten-minute
+resolution for two calendar years: 2016 and 2017. A total of 76 SCADA variables are
+recorded, covering mechanical, electrical, and environmental measurements.
+
+For the purposes of this study, four variables are used: ambient wind speed
+(\texttt{Amb\_Wind\_Speed}, m/s), rotor angular speed (\texttt{Rtr\_RPM\_Avg}, RPM),
+blade pitch angle (\texttt{Blades\_Pitch\_Angle}, degrees), and grid power output
+(\texttt{Grid\_Prod\_Power}, kW). These four variables together capture the complete
+aerodynamic and electrical state of the turbine. All other SCADA variables are excluded
+from the classification models, though they remain available for downstream condition
+monitoring tasks that build on the zone labels.
+
+The 2016 dataset is used for training and internal validation, split chronologically:
+the first 80\% of the time series (approximately 41,860 samples) forms the training set
+and the remaining 20\% (approximately 10,466 samples) forms the internal validation set.
+The full 2017 dataset (52,234 samples), collected from Wind Turbine~11 at the same wind
+farm, serves as the external test set to measure how well the trained models generalise
+to a different year and turbine. No 2017 data is used during training or validation. The
+chronological split is used rather than a random split to respect the time-series
+structure of the data and to test generalisation forward in time, which is the direction
+that matters for operational deployment.
 
 \section{Physics-Informed Zone Definitions}
 \label{sec:ch3:zones}
 
+The nine operational zones are defined from first principles of turbine control and
+aerodynamics. Each zone corresponds to a physically well-defined state identified using
+threshold rules applied to the four main SCADA variables. The threshold values are
+derived from the known control parameters of the turbine rather than from statistical
+analysis of the data. This means the zone boundaries are fixed before looking at the
+SCADA measurements, which avoids any risk of the labelling procedure overfitting to the
+specific dataset.
+
 \subsection{Lockdown and Transition Regimes (Zones 1 and 2)}
 \label{subsec:ch3:zones:12}
-% TODO
 
-\subsection{Standby and Low-Wind Regimes (Zones 3 and 4)}
+\textbf{Zone~1 --- Safety Lockdown}
+(\texttt{Blades\_Pitch\_Angle} $\geq$ 86\textdegree): the turbine is intentionally
+prevented from producing power. The blade pitch angle is held at approximately
+90\textdegree, the feathered position where the blades present the smallest possible
+aerodynamic surface to the wind. This state is typically triggered by external constraints
+such as grid saturation or scheduled maintenance. The pitch threshold of 86\textdegree\
+is conservative: any reading above this value unambiguously indicates lockdown regardless
+of wind speed or rotor speed.
+
+\textbf{Zone~2 --- Transition to or from Safety Lockdown}
+(\texttt{Blades\_Pitch\_Angle} $<$ 86\textdegree, in transition): blade pitch is
+actively adjusted as the turbine moves between normal operating zones and the lockdown
+state. Transitions into or out of lockdown span more than one ten-minute SCADA interval,
+producing intermediate pitch readings in this zone. Zone~2 is one of the most important
+zones to identify correctly because misclassifying a transition as normal operation
+produces misleading sensor readings in any model that assumes steady-state conditions.
+
+\subsection{Standby and Transition Below Cut-In Wind Speed (Zones 3 and 4)}
 \label{subsec:ch3:zones:34}
-% TODO
 
-\subsection{Transition to Power Production (Zones 5 and 6)}
+\textbf{Zone~3 --- Standby (Low-Wind Shutdown)}
+(\texttt{Amb\_Wind\_Speed} $<$ 4\,m/s, \texttt{Blades\_Pitch\_Angle} $=$ 24\textdegree,
+\texttt{Rtr\_RPM} $=$ 0): when wind speed is below cut-in, the turbine is fully braked.
+The rotor does not move and blade pitch is fixed at approximately 24\textdegree. This is
+a clearly defined state that is easy to identify from the rotor speed reading alone.
+
+\textbf{Zone~4 --- Transition to or from Standby}
+(\texttt{Amb\_Wind\_Speed} $<$ 4\,m/s, \texttt{Blades\_Pitch\_Angle} $\approx$
+24\textdegree, \texttt{Rtr\_RPM} $>$ 0): during startup or shutdown at low wind speeds,
+the brakes are released and the rotor begins to move, but wind conditions are not yet
+enough for power production. This transient state is identified by a non-zero rotor speed
+combined with low wind speed and a standby-range pitch angle. It is short-lived and
+appears briefly when the turbine starts or stops under marginal wind conditions.
+
+\subsection{Transitions to Power Production (Zones 5 and 6)}
 \label{subsec:ch3:zones:56}
-% TODO
 
-\subsection{Partial and Full Load Operation (Zones 7 and 8)}
+\textbf{Zone~5 --- Free Wheeling (Below Cut-In)}
+(\texttt{Amb\_Wind\_Speed} $<$ 4\,m/s,
+0\textdegree $<$ \texttt{Blades\_Pitch\_Angle} $<$ 24\textdegree,
+0 $<$ \texttt{Rtr\_RPM} $<$ 11): as the turbine prepares to engage the generator,
+blade pitch moves toward zero degrees to maximise aerodynamic efficiency. The rotor spins
+slowly but the generator is not yet connected to the grid. This free-wheeling state can
+also occur when wind speed drops below cut-in while the turbine is shutting down.
+
+\textbf{Zone~6 --- Generator Engagement (Below Cut-In)}
+(\texttt{Amb\_Wind\_Speed} $<$ 4\,m/s,
+\texttt{Blades\_Pitch\_Angle} $=$ 0\textdegree,
+11.0 $<$ \texttt{Rtr\_RPM} $\leq$ 11.2): at approximately 11.0--11.2\,RPM, the rotor
+has reached the speed at which the generator can be connected to the grid. This zone
+occupies a very narrow RPM band and is one of the most challenging to classify correctly.
+Small measurement errors or data averaging effects can shift observations across the
+Zone~5/6 or Zone~6/7 boundary. Zone~6 also sees the highest error rates from both
+rule-based classifiers.
+
+\subsection{Partial Load and Full Load Operation (Zones 7 and 8)}
 \label{subsec:ch3:zones:78}
-% TODO
+
+\textbf{Zone~7 --- Partial Load Operation}
+(4 $\leq$ \texttt{Amb\_Wind\_Speed} $\leq$ 12\,m/s,
+\texttt{Blades\_Pitch\_Angle} $\approx$ 0\textdegree,
+11.2 $<$ \texttt{Rtr\_RPM} $<$ 14.8): the most common operating state, accounting for
+approximately 51\% of the training data. The turbine produces power below its rated
+capacity. Blade pitch is held at zero degrees to maximise aerodynamic efficiency and
+power increases approximately as the cube of wind speed. The control system adjusts
+generator torque to maintain the optimal tip speed ratio. Both RIPPER and FOIL achieve
+high accuracy in Zone~7 due to the stability of this regime.
+
+\textbf{Zone~8 --- Full Load Operation}
+(12 $<$ \texttt{Amb\_Wind\_Speed} $<$ 25\,m/s,
+\texttt{Blades\_Pitch\_Angle} $>$ 0\textdegree,
+11.8 $\leq$ \texttt{Rtr\_RPM} $<$ 15): above rated wind speed, the turbine maintains
+its maximum power output by progressively pitching the blades to reduce aerodynamic
+efficiency. Rotor speed is held nearly constant at approximately 15\,RPM and power at
+approximately 2000\,kW. The non-zero blade pitch combined with high wind speed is a
+clear signature that makes Zone~8 straightforward to identify. Zone~8 accounts for
+approximately 5.5\% of the validation data.
+
+\textbf{Zone~9 --- High-Wind Safety Shutdown}
+(\texttt{Amb\_Wind\_Speed} $>$ 25\,m/s): at extreme wind speeds the turbine shuts down
+automatically to prevent structural overload. Blades are pitched toward 90\textdegree\
+and the rotor is braked to a stop. No observations corresponding to Zone~9 were found in
+the dataset. The classification problem therefore covers Zones~1--8 in practice.
 
 \section{Discretization of SCADA Variables}
 \label{sec:ch3:discretization}
-% TODO
+
+RIPPER and FOIL operate on discrete (categorical) input features rather than continuous
+values. The four SCADA variables are therefore converted to categorical bins before
+training. The bin boundaries are set using the same physical thresholds that define the
+zone boundaries, keeping the discretization consistent with the zone definitions.
+
+Wind speed (\texttt{Amb\_Wind\_Speed}) is divided into four bins: below cut-in
+($<$\,4\,m/s), medium wind (4--12\,m/s), high wind (12--25\,m/s), and above cut-out
+($>$\,25\,m/s). Rotor speed (\texttt{Rtr\_RPM\_Avg}) is divided into five bins:
+stationary (0\,RPM), low speed (0--11\,RPM), generator engagement (11--11.2\,RPM),
+torque-controlled (11.2--14.8\,RPM), and rated ($\geq$\,14.8\,RPM). Blade pitch
+(\texttt{Blades\_Pitch\_Angle}) is divided into five bins: full efficiency angle
+($\approx$\,0\textdegree), standby angle ($\approx$\,24\textdegree), control angle
+(between standby and lockdown transition), lockdown transition, and lockdown
+($\geq$\,86\textdegree). Power output (\texttt{Grid\_Prod\_Power}) is divided into five
+bins from very low to above rated.
+
+The discretization boundaries were fixed before training and remained unchanged for the
+2016 training/validation sets and the 2017 external test. This is important for fair
+evaluation: the discretization is part of the model definition, not a parameter tuned to
+the test data. The same boundaries are also used to build the RIPPER one-vs-rest
+probability features in Chapter~4.
 
 \section{Rule-Based Learning Framework}
 \label{sec:ch3:framework}
 
 \subsection{RIPPER Training}
 \label{subsec:ch3:ripper}
-% TODO
+
+RIPPER is set up as eight binary one-vs-rest classifiers, one for each zone present in
+the data. Each classifier is trained to predict whether a given observation belongs to
+one specific zone (the positive class) or any other zone (the negative class). This
+produces eight independent RIPPER models, each with its own IF--THEN rules for its
+assigned zone. The final prediction is the zone whose RIPPER model produces the highest
+positive-class probability.
+
+The RIPPER hyperparameters are: pruning set size $= 0.1$ (10\% of training data held
+back for pruning), $k = 2$ (two optimisation passes after initial rule induction), and
+description length allowance $= 64$. These values were chosen to produce rules that are
+both accurate and compact. A larger pruning set gives simpler rules with slightly lower
+training accuracy but better generalisation. A higher $k$ gives more optimised rules at
+the cost of longer training time.
 
 \subsection{FOIL Training and Rule Arbitration}
 \label{subsec:ch3:foil}
-% TODO
+
+FOIL is trained on the same discretized features as RIPPER. Unlike RIPPER, FOIL is
+applied as a standard multiclass classifier rather than a one-vs-rest ensemble. For each
+zone, FOIL generates rules by iteratively adding conditions that maximise information
+gain until the rule covers only positive examples or no further improvement is possible.
+
+FOIL may generate multiple rules that match a single observation. When this happens, the
+prediction goes to the zone whose matching rule has the most conditions, on the reasoning
+that a more specific rule is a better match than a more general one. If no FOIL rule
+matches at all, the prediction falls back to the RIPPER model output. This arbitration
+strategy is fixed before training and applied the same way during both internal and
+external validation.
 
 \subsection{Validation and Evaluation Protocol}
 \label{subsec:ch3:eval}
-% TODO
+
+The 2016 training set is used to train both RIPPER and FOIL. After training, both models
+are evaluated on the 2016 validation set (the held-out last 20\% of 2016 data) without
+any retraining or parameter adjustment. This internal validation measures how well the
+models work on data from the same year and turbine as the training data.
+
+Both models are then applied, again without retraining, to the complete 2017 dataset.
+This external validation tests whether the learned rules remain valid one year later,
+under potentially different weather patterns, with a turbine that has aged by one year.
+The comparison between internal and external performance is the primary indicator of
+whether the zone framework captures stable physical behaviour or year-specific patterns.
+
+Performance is measured using overall accuracy and macro-averaged F1 score. The macro-F1
+gives equal weight to all eight zones in the data, making it sensitive to errors in small
+zones such as Zone~2 (97 samples in the validation set). Per-zone precision and recall
+are also reported to identify which zones are most difficult to classify correctly.
 
 \section{Results}
 \label{sec:ch3:results}
 
 \subsection{Internal Validation (2016)}
 \label{subsec:ch3:results:val}
-% TODO
+
+On the 2016 internal validation set, RIPPER achieves an overall accuracy of 92.6\% with
+a macro-F1 of 0.916. The results show strong performance across most zones. The largest
+errors occur in Zone~5 (free wheeling), where RIPPER achieves a precision of 0.62 and
+recall of 0.98. This means RIPPER correctly identifies most Zone~5 observations but also
+pulls in many observations from neighbouring zones, Zone~6 in particular. Zone~6 itself
+shows reduced recall (0.71), reflecting the difficulty of separating the narrow generator
+engagement band from adjacent zones using discretized bin features.
+
+FOIL achieves 92.3\% accuracy and a macro-F1 of 0.897 on the same validation set. Its
+errors are distributed differently from RIPPER's. Zone~4 (transition to or from standby)
+shows reduced precision (0.75) and recall (0.94), and Zone~5 shows a recall of only 0.46
+despite a precision of 1.00. This means FOIL is very conservative about predicting
+Zone~5: it correctly identifies the few Zone~5 observations it does predict, but misses
+more than half of them. This reflects the more specific nature of FOIL rules, which cover
+a smaller region of the feature space and therefore miss more observations near zone
+boundaries.
+
+Both classifiers perform very well on the most common and clearly defined zones. Zone~1
+(safety lockdown) achieves perfect or near-perfect precision and recall for both
+classifiers, reflecting the unambiguous blade pitch signature. Zone~3 (standby) and
+Zone~7 (partial load) also show consistently high performance. Errors that do occur are
+almost entirely confined to adjacent zones. There is no evidence of widespread
+misclassification where, for example, a full-load observation is labelled as standby.
 
 \subsection{External Validation (2017)}
 \label{subsec:ch3:results:ext}
-% TODO
+
+On the 2017 external test set, RIPPER achieves 91.2\% accuracy and a macro-F1 of 0.914.
+This is a small drop from the 92.6\%/0.916 on the 2016 validation set, indicating good
+generalisation. The pattern of errors is similar to the internal validation: Zone~6
+remains the most challenging zone, and misclassifications continue to be concentrated
+near zone boundaries.
+
+FOIL achieves 91.4\% accuracy on the 2017 external test, a drop of 0.9 percentage
+points from 92.3\% on the internal validation. The macro-F1 decreases from 0.897 to
+0.896. Both declines are smaller than those for RIPPER, which drops by 1.4 percentage
+points in accuracy. The smaller decline for FOIL may be explained by the 2017 data
+having a more balanced distribution of zone frequencies than the last 20\% of the 2016
+dataset, which gives FOIL's more specific rules more opportunity to match correctly.
+
+The external validation results confirm that both classifiers generalise well across
+years. The learned rules capture stable physical relationships between the SCADA variables
+and the operational zones, relationships that remain valid twelve months after the
+training data was collected, without any retraining.
 
 \subsection{Comparison of RIPPER and FOIL Rule Structures}
 \label{subsec:ch3:results:rules}
-% TODO
+
+Beyond accuracy, the structure of the learned rule sets shows important differences
+between the two algorithms. For Zone~7 (partial load), RIPPER produces six rules. The
+first four all combine torque-controlled rotor speed with medium wind speed and one of
+several power output levels. The remaining two extend coverage to high-wind conditions
+and high-power output at full-efficiency pitch angle, capturing observations near the
+Zone~7/8 boundary. Together, the six rules cover Zone~7 using conditions that match the
+known physics of partial load operation closely.
+
+FOIL produces eleven separate rules for the same zone, each combining four conditions,
+covering every combination of power level and pitch angle individually. While every
+individual FOIL rule is physically interpretable, the number of rules makes the Zone~7
+classification harder to summarise at a glance. RIPPER's more compact representation is
+preferable in practice when a domain expert needs to read and check the classification
+logic.
+
+The compact structure of RIPPER rules is consistent across all eight zones: RIPPER
+produces fewer rules per zone and each rule covers a larger part of the feature space.
+This may explain why RIPPER maintains a small macro-F1 advantage over FOIL in the
+external test (0.914 vs.\ 0.896): rules that cover more of the feature space are less
+sensitive to small shifts in the data distribution between years.
 
 \section{Discussion}
 \label{sec:ch3:discussion}
-% TODO
+
+The results show that physics-informed rule-based classifiers can reliably identify wind
+turbine operational zones from SCADA data, reaching 91--93\% accuracy on both internal
+validation and an independent external test set from a different year. The learned rules
+are physically interpretable and can be checked against known turbine control logic.
+This addresses Research Question~1 directly.
+
+The main source of error is the transition zones, particularly Zone~6 (generator
+engagement), which occupies a very narrow band of rotor speeds. The discretization of
+continuous RPM values into bins means that observations near the Zone~5/6 or Zone~6/7
+boundary can end up in the wrong bin due to the averaging effect of ten-minute data. This
+is not a problem with the zone definition itself but a limitation of how the data is
+represented for rule induction.
+
+The comparison between RIPPER and FOIL shows that both are viable for this task. RIPPER
+shows a higher macro-F1 on both evaluation sets (0.916 vs.\ 0.897 internally, 0.914
+vs.\ 0.896 externally) and produces a more compact rule set. For a practical PHM
+application where a domain expert needs to read and verify the classification rules,
+RIPPER is the preferred choice. FOIL remains useful as an independent check: when RIPPER
+and FOIL agree, there is high confidence in the prediction. When they disagree, the
+disagreement itself signals that the observation is near a zone boundary and may need
+closer inspection.
+
+This study does not compare the rule-based methods against other interpretable
+classifiers such as decision trees. That comparison is addressed in Chapter~4, where
+supervised classifiers including Random Forests and Gradient Boosting are evaluated on
+the same task using the zone labels produced by this study.
 
 \section{Summary}
 \label{sec:ch3:summary}
-% TODO
+
+This chapter presented a physics-informed framework for defining and classifying nine
+operational zones for wind turbine SCADA data, eight of which appear in the dataset. The
+zone boundaries were derived from known turbine control parameters rather than from
+statistical analysis. RIPPER achieved 92.6\% accuracy on internal validation and 91.2\%
+on the 2017 external test. FOIL achieved 92.3\% and 91.4\% respectively. Both classifiers
+generalise well across years and produce errors confined to adjacent zone boundaries,
+reflecting the genuine difficulty of separating transition states rather than a failure
+of the zone framework itself.
+
+The zone labels produced by this framework and the RIPPER one-vs-rest probability outputs
+form the foundation for Chapter~4, which compares DRL agents and supervised classifiers
+on the same classification task.

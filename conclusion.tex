@@ -2,45 +2,150 @@
 \chapter{Conclusion}
 \label{chap:conclusion}
 
-% TODO — introductory paragraph
+This chapter summarises the key findings of the thesis, provides direct answers to the
+five research questions stated in Chapter~1, describes limitations and threats to
+validity, and identifies the most important directions for future research.
 
 \section{Summary of Findings}
 \label{sec:conc:summary}
-% TODO
+
+This thesis developed and evaluated methods for classifying wind turbine operational
+zones from SCADA data, with the goal of enabling reliable, context-aware condition
+monitoring in a PHM digital twin. The work was structured as two connected studies.
+
+The first study (Chapter~3) defined nine operational zones based on turbine physics and
+trained RIPPER and FOIL rule-based classifiers to identify these zones from four SCADA
+variables. Eight of the nine zones are present in the dataset. RIPPER achieved 92.6\%
+accuracy on internal validation and 91.2\% on an independent 2017 test set. FOIL achieved
+92.3\% and 91.4\% respectively. Both classifiers generalised well across years and
+produced interpretable rules that align with known turbine control logic.
+
+The second study (Chapter~4) compared DRL agents (DQN, PPO, A2C) and supervised
+classifiers (Random Forest, Gradient Boosting, MLP) on the same zone classification
+task. The key finding was that a Random Forest trained on the four raw SCADA signals
+achieves 100\% accuracy on both the 2016 validation set and the 2017 external test. Among
+DRL agents, DQN with physics guardrails reached 97.7\% accuracy on the external test,
+compared to 96.0\% for PPO and 93.4\% for A2C. Physics guardrails substantially improved
+PPO and A2C performance and added a safety guarantee to DQN at no accuracy cost. A
+deployment pipeline comparison showed that placing DQN before a LightGBM meta-model
+reduces the number of readings flagged for human review by approximately 70\% compared
+to building the meta-model directly on RIPPER outputs, while maintaining 98.9\% recall
+of DQN's remaining errors with only 14 false alarms across 52,234 test readings.
 
 \section{Answers to the Research Questions}
 \label{sec:conc:rqa}
 
-\subsection*{RQ1: Can physics-informed rule-based classifiers reliably classify operational zones?}
-% TODO
+\subsection*{RQ1: Can physics-informed rule-based classifiers reliably classify
+operational zones?}
+
+Yes. RIPPER and FOIL both achieve around 91--93\% accuracy on both internal validation
+and an independent external test set from a different year. The errors are concentrated
+in transition zones near the boundary of the generator engagement speed (Zone~6) and are
+a consequence of discretization rather than fundamental problems with the zone
+definitions. Both classifiers generalise well across years and produce rules that match
+known turbine physics.
 
 \subsection*{RQ2: Can supervised classifiers improve on rule-based accuracy?}
-% TODO
+
+Yes, significantly. A Random Forest achieves 100\% accuracy on both evaluation sets,
+compared to 91--93\% for the rule-based models. Gradient Boosting reaches 99.9\% and the
+MLP reaches 99.4\%. The accuracy gap is explained entirely by the discretization
+constraint of the rule-based methods: supervised classifiers work directly with continuous
+SCADA values and can find the exact zone boundaries.
 
 \subsection*{RQ3: Can DRL agents learn zone classification, and when are they preferable?}
-% TODO
+
+Yes, DRL agents can learn this task. DQN with guardrails reaches 97.7\% accuracy, a
+strong result that is 6--7 percentage points better than the rule-based methods and only
+2.3 points below the best supervised classifier. DRL is preferable to supervised
+classifiers in settings where labelled training data is not available and the reward
+signal can be computed from physics rules, or where the model needs to update
+continuously during deployment. In settings where labelled data is available and accuracy
+is the primary concern, a supervised classifier is the better choice.
 
 \subsection*{RQ4: What is the contribution of RIPPER meta-features to accuracy?}
-% TODO
+
+For supervised classifiers, the RIPPER meta-features contribute essentially nothing. The
+Random Forest on four raw SCADA signals achieves 100\%, the same as the RF on all 13
+features (which makes one error on the 2016 validation set). The MLP on raw SCADA
+achieves 99.5\%, marginally better than the MLP on full features (99.4\%). The raw SCADA
+signals already contain all the information needed to identify the zones correctly. The
+RIPPER meta-features may still add value for DRL agents as a form of domain knowledge
+in the state representation, but this was not tested as an ablation in this study.
 
 \subsection*{RQ5: Do physics guardrails improve DRL accuracy and physical compliance?}
-% TODO
+
+Yes. Physics guardrails improve macro-F1 by 0.269 for A2C (from 0.578 to 0.847), by
+0.044 for PPO (from 0.910 to 0.954), and by 0.004 for DQN (from 0.963 to 0.967). The
+correction rates show that DQN already respects the physical constraints in 99.94\% of
+predictions without guardrails. Guardrails are most effective for weaker DRL agents and
+add a safety guarantee for all agents at essentially no cost.
 
 \section{Limitations and Threats to Validity}
 \label{sec:conc:limits}
 
 \paragraph{Internal Validity.}
-% TODO
+Internal validity concerns whether the comparisons between models are fair and confounding
+factors have been controlled. All models are trained and evaluated on the same dataset
+using the same chronological split and the same evaluation metrics, which ensures a
+consistent basis for comparison. The DRL agents and supervised classifiers share the same
+normalised feature set, so differences in accuracy cannot be attributed to data
+preprocessing differences. One potential internal validity concern is that DRL agents are
+evaluated using the best checkpoint saved during training rather than the final model
+weights; this provides a conservative estimate of each algorithm's peak performance but
+introduces a dependency on when during training the best checkpoint was saved.
 
 \paragraph{External Validity.}
-% TODO
+External validity concerns whether the findings generalise beyond the specific data and
+conditions studied. The most significant limitation is that all results derive from a
+single offshore wind farm with one turbine type. Whether the eight-zone framework and the
+classification results transfer to onshore turbines, different manufacturers, or turbines
+with fundamentally different control systems is unknown. The 100\% Random Forest accuracy
+result in particular may not replicate if the zone boundaries require significant
+modification for a different turbine design. The cross-turbine, cross-year external test
+on Wind Turbine~11 (2017) provides evidence of generalisation within the same wind farm,
+but this represents a limited form of external validity.
 
 \paragraph{Construct Validity.}
-% TODO
+Construct validity concerns whether the measurements used capture what the thesis claims
+to measure. Overall accuracy and macro-F1 are valid measures of zone classification
+correctness. However, both metrics evaluate classification as an end in itself rather
+than measuring downstream PHM outcomes. A complete evaluation would test whether correct
+zone classification reduces false alarm rates in fault detection, improves power curve
+model accuracy, or enables better maintenance scheduling. This end-to-end evaluation is
+not performed and is identified as the most important direction for future work.
 
 \paragraph{Conclusion Validity.}
-% TODO
+No formal statistical significance tests are applied to the accuracy differences in
+Table~\ref{tab:ch4:results}. Given the external test size of 52,234 samples, a 1\%
+accuracy difference corresponds to approximately 500 observations, making the larger
+reported differences almost certainly significant in a statistical sense. However, a
+McNemar test or bootstrap confidence interval analysis would make this claim explicit.
+Small differences between models, particularly those below 0.5 percentage points, should
+be interpreted cautiously without formal significance testing.
 
 \section{Future Work}
 \label{sec:conc:future}
-% TODO
+
+The most important next step is multi-turbine validation. Applying the zone framework
+from Chapter~3 to additional turbines beyond those used in this thesis and to turbines
+from different wind farms would test how well the physics-informed definitions generalise.
+
+Online DRL adaptation is the second priority. Deploying a DQN agent on a simulated
+turbine and allowing it to update its policy from reward signals during operation would
+directly test the main theoretical advantage of DRL over supervised classifiers. A reward
+function that covers all zones using physics rules, not just the two clearest zones
+covered by the guardrails, would be a key component of this experiment.
+
+End-to-end PHM evaluation is the third direction. Rather than evaluating zone
+classification accuracy alone, future work should build a zone-aware power curve model
+and fault detection system, and measure whether correct zone identification actually
+reduces false alarms and improves fault detection rates. This would directly demonstrate
+the value of the zone classification framework for the PHM digital twin application that
+motivated this thesis.
+
+Finally, an ablation study on the DRL state representation would clarify the role of the
+RIPPER meta-features. Training DQN with and without the RIPPER probability features in
+its observation would show whether these features help the agent learn faster or achieve
+higher accuracy, or whether the four raw SCADA signals are sufficient for DRL as well as
+for supervised classifiers.

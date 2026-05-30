@@ -2,30 +2,146 @@
 \chapter{Synthesis and Cross-Paper Discussion}
 \label{chap:ch5}
 
-% TODO — introductory paragraph
+This chapter brings together the findings from Chapters~3 and~4 and discusses what they
+mean when considered jointly. The two studies address different aspects of the same
+problem, operational zone classification for wind turbine SCADA data, and the results
+from one study directly inform the interpretation of the other.
 
 \section{From Zone Definition to Zone Classification}
 \label{sec:ch5:foundation}
-% TODO
+
+The two studies in this thesis are not independent. The zone framework developed in
+Chapter~3 is the foundation on which everything in Chapter~4 is built. The zone labels
+that RIPPER and FOIL are trained to produce are the ground truth labels that all models
+in Chapter~4 are trained and evaluated on. The RIPPER one-vs-rest probability outputs
+become input features for the DRL agents. The quality of the Chapter~3 framework
+directly determines the quality of every result in Chapter~4.
+
+This dependency is also a strength of the thesis structure. By starting with a
+physics-informed zone definition and a careful labelling procedure, the thesis avoids the
+common problem of machine learning studies that evaluate a classifier on labels that are
+themselves uncertain or arbitrary. The labels used in this thesis can be verified against
+known turbine physics, and the 100\% accuracy of the raw-SCADA Random Forest in
+Chapter~4 confirms that the labels are consistent with the physical reality of the
+turbine's behaviour.
 
 \section{What the 100\% Accuracy Result Means for the Zone Framework}
 \label{sec:ch5:rf100}
-% TODO
+
+The finding that a Random Forest achieves 100\% accuracy using only four raw SCADA
+signals can be interpreted in two ways, both of which are correct and both of which are
+important.
+
+The first interpretation is about the zone framework. 100\% accuracy means that the
+eight zones present in the dataset are completely and unambiguously separated in the
+four-dimensional SCADA space. There is no overlap between zones, no region where an
+observation could reasonably belong to more than one zone. This is strong evidence that
+the physics-informed zone definitions in Chapter~3 are well-specified. The zones capture
+genuinely different physical states rather than arbitrary partitions of the data.
+
+The second interpretation is about the rule-based classifiers. If the zones are perfectly
+separable with four continuous features, then RIPPER and FOIL's 91--93\% accuracy is not
+a reflection of hard zones but of the discretization constraint. The rule-based methods
+were never going to achieve 100\% with binned features, because the bins place a hard
+ceiling on accuracy. Knowing this changes how we should interpret the Chapter~3 results:
+they are close to the ceiling for their method, not far from the ceiling for the problem.
+
+Together, these two interpretations suggest a practical strategy for a wind turbine
+digital twin: use rule-based models (RIPPER) to make the zone definitions interpretable
+and verifiable, and use a supervised classifier (Random Forest) for actual zone
+identification in production. The rule-based model explains what each zone means in
+physical terms. The Random Forest identifies which zone each observation belongs to with
+100\% accuracy on both evaluation sets.
 
 \section{Interpretability, Accuracy, and Deployability: A Three-Way Trade-Off}
 \label{sec:ch5:tradeoff}
-% TODO
+
+The results across both chapters reveal a clear three-way trade-off between
+interpretability, accuracy, and deployability. Each approach in this thesis sits at a
+different point in this trade-off space.
+
+RIPPER and FOIL are the most interpretable: their rules can be read, verified, and
+explained to a non-expert. They are the least accurate (91--93\%) due to discretization
+constraints. They are relatively easy to deploy, running fast and requiring no special
+infrastructure, but they cannot adapt to changes in turbine behaviour without being
+retrained from new labelled data.
+
+The Random Forest and Gradient Boosting classifiers are the most accurate (99.9--100\%)
+but the least interpretable: they produce predictions without a human-readable
+explanation. Feature importance scores give some indication of which variables drive the
+predictions, but not the specific decision logic. They are straightforward to deploy and
+run very fast, but like the rule-based models, they are static once trained.
+
+The DRL agents, particularly DQN, occupy a middle position. Accuracy is lower than
+supervised classifiers (97.7\% for DQN vs.\ 100\% for RF) but higher than rule-based
+methods. They are not more interpretable than supervised classifiers: the policy network
+is also a black box. Their main advantage is deployability in settings where labelled
+data is unavailable or where the model needs to update during operation. Physics guardrails
+add a layer of transparency to DRL outputs by providing explicit physical rules for the
+clearest cases.
 
 \section{The Role of Physics in Machine Learning for PHM}
 \label{sec:ch5:physics}
-% TODO — this is the most important section for new citations.
-% Cite \citep{gijon2024} here as a parallel example of physics-guided ML in wind energy:
-% they combine a physics power-curve model with a neural network for residuals, and use
-% SHAP for interpretability. Their conclusion matches this thesis: physics + data-driven
-% is stronger than either alone.
-% Also reinforce with \citep{hong2025} — physics constraints improve SCADA data quality,
-% same principle as physics-informed zone boundaries improving classification quality.
+
+A recurring theme across both studies is the role of physical knowledge in making machine
+learning models more reliable. In Chapter~3, physics knowledge is used to define the zone
+boundaries: the thresholds on blade pitch, wind speed, and rotor RPM that separate one
+operating state from another. These boundaries are not learned from data; they are derived
+from the known control logic of the turbine. This means the zone definitions are valid
+from the first day of operation, before any data has been collected.
+
+In Chapter~4, physics knowledge is embedded in the DRL reward function through the
+zone-distance penalty, which assumes a physically meaningful ordering of the zones, and
+in the guardrail rules, which directly enforce the two clearest physical constraints.
+This physics-informed reward design guides the DRL agent away from physically impossible
+predictions even during training, which speeds up learning and improves the quality of
+the learned policy.
+
+The general lesson is that physics knowledge and data-driven models are not in
+competition. They are complementary. Physics knowledge reduces the search space for
+data-driven models and provides interpretable constraints that make the models more
+trustworthy. Data-driven models can identify patterns that are too complex to specify
+manually. The best results in this thesis come from combining both: physics-informed zone
+definitions (Chapter~3) with data-driven classifiers trained on physics-consistent labels
+(Chapter~4). This principle extends across wind energy research. \citet{gijon2024} show
+that a hybrid physics-plus-ML model for wind turbine power prediction achieves 37\%
+higher accuracy than a physics model alone while remaining interpretable through
+explainability analysis. Similarly, \citet{hong2025} demonstrate that embedding physics
+constraints directly into the training process of a SCADA anomaly detector produces more
+reliable and interpretable results than purely data-driven outlier removal.
 
 \section{Practical Recommendations for Wind Farm Operators}
 \label{sec:ch5:recommendations}
-% TODO
+
+Based on the results of both studies, the following practical recommendations can be made
+for wind farm operators and digital twin developers:
+
+\begin{itemize}
+  \item \textbf{For production zone classification where labelled training data is
+        available:} use a Random Forest or Gradient Boosting classifier trained on the
+        four raw SCADA signals. This achieves 100\% accuracy, runs fast, and requires no
+        special infrastructure.
+
+  \item \textbf{For understanding and verifying the zone definitions:} use the RIPPER
+        rule set. The rules make explicit which physical conditions define each zone and
+        can be checked by a domain expert without any machine learning knowledge.
+
+  \item \textbf{For deployment on a new turbine type or where labelled data is not
+        available:} DQN with physics guardrails is the recommended starting point. It
+        reaches 97.7\% accuracy in this study and can, in principle, be updated online
+        using reward signals computed from physics rules.
+
+  \item \textbf{For reducing the number of readings that need human review:} use
+        Pipeline~B, which places DQN before a LightGBM meta-model. This reduces flagged
+        readings from 8.0\% to 2.3\% of the dataset while maintaining 98.9\% recall of
+        the remaining errors and producing only 14 false alarms across 52,234 test
+        readings.
+
+  \item \textbf{Avoid A2C for this task.} Its failure on Zone~8 (full load operation) is
+        a significant problem for any application that depends on correct identification
+        of the turbine's highest-power operating state.
+
+  \item \textbf{Apply physics guardrails to any DRL agent used for zone classification.}
+        They cost nothing for a well-trained agent (DQN corrects only 0.05\% of
+        predictions) and provide a meaningful safety net for weaker agents.
+\end{itemize}
