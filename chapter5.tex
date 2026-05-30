@@ -6,20 +6,27 @@ This chapter brings together the findings from Chapters~3 and~4 and discusses wh
 mean when considered jointly. The two studies address different aspects of the same
 problem, operational zone classification for wind turbine SCADA data, and the results
 from one study directly inform the interpretation of the other.
-Figure~\ref{fig:ch5:lifecycle} shows how both studies fit into the broader PHM digital
-twin lifecycle for a real wind turbine.
+Figure~\ref{fig:ch5:lifecycle} shows how both studies connect to the full PHM digital
+twin lifecycle of a real offshore wind turbine, from raw SCADA data through zone
+classification and ML-based predictions to condition-based maintenance decisions.
 
 \begin{figure}[h]
 \centering
 \includegraphics[width=\textwidth]{figs/lifecycle_diagram.png}
-\caption{System architecture showing how the two studies in this thesis connect to the
-PHM digital twin lifecycle of a real wind turbine. Study~1 (Paper~1, green) defines the
-zone framework and produces interpretable classification rules. Study~2 (Paper~2,
-purple) delivers accurate zone predictions that feed into zone-aware condition monitoring
-models. The operational feedback loop (grey) shows how maintenance decisions informed by
-the digital twin improve turbine operation over time. The future online DRL adaptation
-path (brown, dashed) represents the next step: allowing DQN to update its policy from
-live reward signals as the turbine ages.}
+\caption{System architecture showing how the two studies in this thesis fit into the
+PHM digital twin lifecycle of a real offshore wind turbine. The SCADA system records 76
+variables every ten minutes, of which four are used in this thesis. Study~1 (Paper~1)
+applies physics-informed thresholds to classify each reading into one of nine operational
+zones using RIPPER and FOIL, outputting a zone label and eight RIPPER probabilities per
+reading. Study~2 (Paper~2) takes those labels and probabilities together with the raw
+SCADA signals and produces accurate zone predictions using RF, DQN, PPO, A2C and MLP
+(97.7--100\% accuracy). Zone predictions and zone definitions together enable the PHM
+digital twin to apply a different model per zone for power curve monitoring, fault
+detection and long-term degradation tracking. Anomaly alerts from the digital twin feed
+into maintenance decisions, which close the feedback loop back to the physical turbine.
+The dashed arrow to the right indicates a future direction: DQN could continue updating
+its policy from live reward signals during actual turbine operation, adapting as the
+turbine ages over time.}
 \label{fig:ch5:lifecycle}
 \end{figure}
 

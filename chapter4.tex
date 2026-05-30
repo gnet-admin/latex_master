@@ -189,16 +189,20 @@ Both meta-models are trained on the 2016 training set and evaluated on the 2017 
 test set of 52,234 readings. The three evaluation metrics are: total readings flagged for
 review, recall for the underlying model's errors (the fraction of errors flagged), and
 false alarms (readings flagged but correctly classified by the underlying model).
-Figure~\ref{fig:ch4:pipelines} illustrates the complete flow of both pipelines.
+Figure~\ref{fig:ch4:pipelines} illustrates the complete decision flow for both pipelines,
+including the exact feature inputs to each meta-model.
 
 \begin{figure}[h]
 \centering
 \includegraphics[width=\textwidth]{figs/pipeline_comparison.png}
-\caption{Deployment pipeline comparison. Pipeline~A (left) uses RIPPER directly and
-flags uncertain predictions with a Random Forest meta-model. Pipeline~B (right) first
-corrects RIPPER errors with DQN and physics guardrails, then applies a LightGBM
-meta-model to catch residual errors. Pipeline~B reduces flagged readings from 8.0\% to
-2.3\% while improving error recall from 90.8\% to 98.9\%.}
+\caption{Deployment pipeline comparison. \textbf{Pipeline~A} (left): RIPPER makes the
+zone prediction; a Random Forest meta-model uses raw SCADA signals, RIPPER zone
+probabilities and margin to predict whether RIPPER was wrong. \textbf{Pipeline~B}
+(right): RIPPER probabilities feed into both DQN (as observation features) and the
+LightGBM meta-model directly; DQN makes the zone prediction; LightGBM uses SCADA,
+RIPPER probabilities and DQN temporal features (previous 3 predictions, instability
+score) to detect residual DQN errors. Pipeline~B reduces flagged readings from 8.0\% to
+2.3\% while increasing error recall from 90.8\% to 98.9\%.}
 \label{fig:ch4:pipelines}
 \end{figure}
 
