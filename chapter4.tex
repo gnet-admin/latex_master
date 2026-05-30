@@ -233,6 +233,26 @@ FOIL (Chapter~3)       & 92.3\%  & 91.4\%  & 0.897 & 0.896 \\
 \end{tabular}
 \end{table}
 
+\begin{figure}[h]
+\centering
+\begin{minipage}{0.48\textwidth}
+  \centering
+  \includegraphics[width=\textwidth]{figs/comparison_accuracy.png}
+  \caption*{Accuracy}
+\end{minipage}
+\hfill
+\begin{minipage}{0.48\textwidth}
+  \centering
+  \includegraphics[width=\textwidth]{figs/comparison_f1.png}
+  \caption*{Macro-F1}
+\end{minipage}
+\caption{Classification accuracy (left) and macro-averaged F1 score (right) for all
+models on the 2016 validation set and 2017 external test set. The Random Forest on raw
+SCADA signals achieves 100\% accuracy and F1 of 1.000 on both sets. Among DRL agents,
+DQN with guardrails performs best.}
+\label{fig:ch4:comparison}
+\end{figure}
+
 Among the DRL agents, DQN with guardrails achieves the best performance: 97.3\% accuracy
 on the 2016 validation set and 97.7\% on the 2017 external test. PPO with guardrails
 reaches 96.0\% on both sets. A2C with guardrails reaches 92.7\% on validation and 93.4\%
@@ -278,6 +298,16 @@ observations. The guardrails correct 53 of these errors on the validation set (0
 correction rate), bringing Zone~2 recall up to 1.00. This shows that PPO learns the
 Zone~2 boundary imperfectly and relies on the guardrail to handle the clearest cases.
 
+\begin{figure}[h]
+\centering
+\includegraphics[width=0.75\textwidth]{figs/confusion_matrix_DQN.png}
+\caption{Confusion matrix for DQN with physics guardrails on the 2017 external test set
+(52,234 samples). The main errors occur near the Zone~5/6 boundary and for Zone~8 (full
+load operation), which accounts for the macro-F1 of 0.968 despite 97.7\% overall
+accuracy.}
+\label{fig:ch4:cm_dqn}
+\end{figure}
+
 A2C shows a qualitatively different failure mode. Without guardrails, it achieves
 near-zero recall on Zone~8 (full load operation), which accounts for approximately 5.5\%
 of the validation data. The guardrails cover only Zones~1 and 2 and cannot fix this
@@ -320,6 +350,16 @@ zones. The zone-jump penalty in the DRL reward function was designed to make DRL
 smoother than the MLP, which has no memory of previous predictions. In practice, the MLP
 (0.23 average jump) is comparable to DQN (0.24) and PPO (0.25). The jump penalty appears
 to be too small relative to the accuracy reward to produce a noticeable smoothing effect.
+
+\begin{figure}[h]
+\centering
+\includegraphics[width=0.85\textwidth]{figs/comparison_transitions.png}
+\caption{Average zone jump per timestep for all DRL agents and the MLP on the 2016
+validation set. All models show similar values in the range 0.18--0.25, indicating
+that the smoothness penalty in the DRL reward function did not produce a noticeable
+advantage over the memoryless MLP baseline.}
+\label{fig:ch4:transitions}
+\end{figure}
 
 A2C without guardrails shows the lowest average jump (0.18) but also the lowest accuracy.
 Its low jump count reflects the fact that it is largely stuck predicting a small number
