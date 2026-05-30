@@ -271,22 +271,20 @@ engagement band from adjacent zones using discretized bin features.
 
 \begin{figure}[h]
 \centering
-\begin{minipage}{0.48\textwidth}
-  \centering
-  \includegraphics[width=\textwidth]{figs/cm_ripper_2016.png}
-  \caption*{RIPPER (2016 validation)}
-\end{minipage}
-\hfill
-\begin{minipage}{0.48\textwidth}
-  \centering
-  \includegraphics[width=\textwidth]{figs/cm_foil_2016.png}
-  \caption*{FOIL (2016 validation)}
-\end{minipage}
-\caption{Confusion matrices for RIPPER (left) and FOIL (right) on the 2016 internal
-validation set (10,466 samples). Strong diagonal dominance indicates correct
-classification across most zones. The main confusion occurs near the Zone~5/6 boundary
-for both classifiers.}
-\label{fig:ch3:cm_2016}
+\includegraphics[width=0.70\textwidth]{figs/cm_ripper_2016.png}
+\caption{Confusion matrix for RIPPER on the 2016 internal validation set (10,466
+samples). Strong diagonal dominance indicates correct classification across most zones.
+The main confusion occurs near the Zone~5/6 boundary.}
+\label{fig:ch3:cm_ripper_2016}
+\end{figure}
+
+\begin{figure}[h]
+\centering
+\includegraphics[width=0.70\textwidth]{figs/cm_foil_2016.png}
+\caption{Confusion matrix for FOIL on the 2016 internal validation set (10,466 samples).
+FOIL shows a more conservative pattern on Zone~5 than RIPPER, correctly predicting fewer
+Zone~5 observations but with higher precision.}
+\label{fig:ch3:cm_foil_2016}
 \end{figure}
 
 FOIL achieves 92.3\% accuracy and a macro-F1 of 0.897 on the same validation set. Its
@@ -352,22 +350,20 @@ sensitive to small shifts in the data distribution between years.
 
 \begin{figure}[h]
 \centering
-\begin{minipage}{0.48\textwidth}
-  \centering
-  \includegraphics[width=\textwidth]{figs/per_zone_f1_2016.png}
-  \caption*{2016 validation}
-\end{minipage}
-\hfill
-\begin{minipage}{0.48\textwidth}
-  \centering
-  \includegraphics[width=\textwidth]{figs/per_zone_f1_2017.png}
-  \caption*{2017 external test}
-\end{minipage}
-\caption{Per-zone F1 scores for RIPPER and FOIL on the 2016 validation set (left) and
-2017 external test set (right). Zone~6 (generator engagement) shows the lowest F1 for
-both classifiers on both evaluation sets, consistent with the difficulty of separating
-the narrow RPM band using discretized bin features.}
-\label{fig:ch3:perzone_f1}
+\includegraphics[width=0.90\textwidth]{figs/per_zone_f1_2016.png}
+\caption{Per-zone F1 scores for RIPPER and FOIL on the 2016 internal validation set.
+Zone~6 (generator engagement) shows the lowest F1 for both classifiers, consistent with
+the difficulty of separating the narrow RPM band using discretized bin features.}
+\label{fig:ch3:perzone_f1_2016}
+\end{figure}
+
+\begin{figure}[h]
+\centering
+\includegraphics[width=0.90\textwidth]{figs/per_zone_f1_2017.png}
+\caption{Per-zone F1 scores for RIPPER and FOIL on the 2017 external test set. The
+pattern is consistent with the internal validation results, confirming that Zone~6
+remains the most challenging zone across years.}
+\label{fig:ch3:perzone_f1_2017}
 \end{figure}
 
 \section{Discussion}

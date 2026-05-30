@@ -189,6 +189,18 @@ Both meta-models are trained on the 2016 training set and evaluated on the 2017 
 test set of 52,234 readings. The three evaluation metrics are: total readings flagged for
 review, recall for the underlying model's errors (the fraction of errors flagged), and
 false alarms (readings flagged but correctly classified by the underlying model).
+Figure~\ref{fig:ch4:pipelines} illustrates the complete flow of both pipelines.
+
+\begin{figure}[h]
+\centering
+\includegraphics[width=\textwidth]{figs/pipeline_comparison.png}
+\caption{Deployment pipeline comparison. Pipeline~A (left) uses RIPPER directly and
+flags uncertain predictions with a Random Forest meta-model. Pipeline~B (right) first
+corrects RIPPER errors with DQN and physics guardrails, then applies a LightGBM
+meta-model to catch residual errors. Pipeline~B reduces flagged readings from 8.0\% to
+2.3\% while improving error recall from 90.8\% to 98.9\%.}
+\label{fig:ch4:pipelines}
+\end{figure}
 
 \section{Results}
 \label{sec:ch4:results}
@@ -235,22 +247,20 @@ FOIL (Chapter~3)       & 92.3\%  & 91.4\%  & 0.897 & 0.896 \\
 
 \begin{figure}[h]
 \centering
-\begin{minipage}{0.48\textwidth}
-  \centering
-  \includegraphics[width=\textwidth]{figs/comparison_accuracy.png}
-  \caption*{Accuracy}
-\end{minipage}
-\hfill
-\begin{minipage}{0.48\textwidth}
-  \centering
-  \includegraphics[width=\textwidth]{figs/comparison_f1.png}
-  \caption*{Macro-F1}
-\end{minipage}
-\caption{Classification accuracy (left) and macro-averaged F1 score (right) for all
-models on the 2016 validation set and 2017 external test set. The Random Forest on raw
-SCADA signals achieves 100\% accuracy and F1 of 1.000 on both sets. Among DRL agents,
-DQN with guardrails performs best.}
-\label{fig:ch4:comparison}
+\includegraphics[width=0.92\textwidth]{figs/comparison_accuracy.png}
+\caption{Classification accuracy for all models on the 2016 validation set and 2017
+external test set. The Random Forest on four raw SCADA signals achieves 100\% on both
+sets. Among DRL agents, DQN with guardrails leads at 97.7\% on the external test.}
+\label{fig:ch4:accuracy}
+\end{figure}
+
+\begin{figure}[h]
+\centering
+\includegraphics[width=0.92\textwidth]{figs/comparison_f1.png}
+\caption{Macro-averaged F1 scores for all models on the 2016 validation set and 2017
+external test set. The macro-F1 pattern mirrors the accuracy results, with A2C without
+guardrails showing a particularly low F1 due to its near-zero recall on Zone~8.}
+\label{fig:ch4:f1}
 \end{figure}
 
 Among the DRL agents, DQN with guardrails achieves the best performance: 97.3\% accuracy
@@ -353,12 +363,22 @@ to be too small relative to the accuracy reward to produce a noticeable smoothin
 
 \begin{figure}[h]
 \centering
-\includegraphics[width=0.85\textwidth]{figs/comparison_transitions.png}
-\caption{Average zone jump per timestep for all DRL agents and the MLP on the 2016
-validation set. All models show similar values in the range 0.18--0.25, indicating
-that the smoothness penalty in the DRL reward function did not produce a noticeable
-advantage over the memoryless MLP baseline.}
-\label{fig:ch4:transitions}
+\includegraphics[width=0.90\textwidth]{figs/avg_zone_jump.png}
+\caption{Average zone jump per timestep for all models on the 2016 validation set and
+2017 external test set. All models fall in the range 0.18--0.29, indicating similar
+smoothness regardless of algorithm type. The smoothness penalty in the DRL reward
+function did not produce a clear advantage over the memoryless MLP.}
+\label{fig:ch4:avgjump}
+\end{figure}
+
+\begin{figure}[h]
+\centering
+\includegraphics[width=0.90\textwidth]{figs/temporal_consistency.png}
+\caption{Temporal consistency (fraction of timesteps where the prediction matches the
+previous prediction) for all models on both evaluation sets. A2C with guardrails shows
+the highest consistency, but this reflects its tendency to predict the same common zone
+repeatedly rather than accurately tracking zone transitions.}
+\label{fig:ch4:consistency}
 \end{figure}
 
 A2C without guardrails shows the lowest average jump (0.18) but also the lowest accuracy.

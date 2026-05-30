@@ -6,6 +6,22 @@ This chapter brings together the findings from Chapters~3 and~4 and discusses wh
 mean when considered jointly. The two studies address different aspects of the same
 problem, operational zone classification for wind turbine SCADA data, and the results
 from one study directly inform the interpretation of the other.
+Figure~\ref{fig:ch5:lifecycle} shows how both studies fit into the broader PHM digital
+twin lifecycle for a real wind turbine.
+
+\begin{figure}[h]
+\centering
+\includegraphics[width=\textwidth]{figs/lifecycle_diagram.png}
+\caption{System architecture showing how the two studies in this thesis connect to the
+PHM digital twin lifecycle of a real wind turbine. Study~1 (Paper~1, green) defines the
+zone framework and produces interpretable classification rules. Study~2 (Paper~2,
+purple) delivers accurate zone predictions that feed into zone-aware condition monitoring
+models. The operational feedback loop (grey) shows how maintenance decisions informed by
+the digital twin improve turbine operation over time. The future online DRL adaptation
+path (brown, dashed) represents the next step: allowing DQN to update its policy from
+live reward signals as the turbine ages.}
+\label{fig:ch5:lifecycle}
+\end{figure}
 
 \section{From Zone Definition to Zone Classification}
 \label{sec:ch5:foundation}
