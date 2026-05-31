@@ -84,7 +84,7 @@ specific dataset. Figure~\ref{fig:ch3:geometry_rpm} shows how the eight operatio
 \begin{figure}[h]
 \centering
 \includegraphics[width=0.90\textwidth]{figs/geometry_2016_wind_rpm.png}
-\caption{Wind speed versus rotor RPM for the eight operational zones present in the
+\caption[Wind speed vs rotor RPM — operational zones in 2016 training data]{Wind speed versus rotor RPM for the eight operational zones present in the
 2016 training data. Each zone occupies a clearly defined region. Zone~5 (free wheeling)
 and Zone~6 (generator engagement) share a very narrow RPM band, which makes them the
 most difficult zones to separate with discretized bin features.}
@@ -274,7 +274,7 @@ engagement band from adjacent zones using discretized bin features.
 \begin{figure}[h]
 \centering
 \includegraphics[width=0.70\textwidth]{figs/cm_ripper_2016.png}
-\caption{Confusion matrix for RIPPER on the 2016 internal validation set (10,466
+\caption[RIPPER confusion matrix — 2016 validation set]{Confusion matrix for RIPPER on the 2016 internal validation set (10,466
 samples). Strong diagonal dominance indicates correct classification across most zones.
 The main confusion occurs near the Zone~5/6 boundary.}
 \label{fig:ch3:cm_ripper_2016}
@@ -283,7 +283,7 @@ The main confusion occurs near the Zone~5/6 boundary.}
 \begin{figure}[h]
 \centering
 \includegraphics[width=0.70\textwidth]{figs/cm_foil_2016.png}
-\caption{Confusion matrix for FOIL on the 2016 internal validation set (10,466 samples).
+\caption[FOIL confusion matrix — 2016 validation set]{Confusion matrix for FOIL on the 2016 internal validation set (10,466 samples).
 FOIL shows a more conservative pattern on Zone~5 than RIPPER, correctly predicting fewer
 Zone~5 observations but with higher precision.}
 \label{fig:ch3:cm_foil_2016}
@@ -353,7 +353,7 @@ sensitive to small shifts in the data distribution between years.
 \begin{figure}[h]
 \centering
 \includegraphics[width=0.90\textwidth]{figs/per_zone_f1_2016.png}
-\caption{Per-zone F1 scores for RIPPER and FOIL on the 2016 internal validation set.
+\caption[Per-zone F1 scores — 2016 validation set]{Per-zone F1 scores for RIPPER and FOIL on the 2016 internal validation set.
 Zone~6 (generator engagement) shows the lowest F1 for both classifiers, consistent with
 the difficulty of separating the narrow RPM band using discretized bin features.}
 \label{fig:ch3:perzone_f1_2016}
@@ -362,7 +362,7 @@ the difficulty of separating the narrow RPM band using discretized bin features.
 \begin{figure}[h]
 \centering
 \includegraphics[width=0.90\textwidth]{figs/per_zone_f1_2017.png}
-\caption{Per-zone F1 scores for RIPPER and FOIL on the 2017 external test set. The
+\caption[Per-zone F1 scores — 2017 external test set]{Per-zone F1 scores for RIPPER and FOIL on the 2017 external test set. The
 pattern is consistent with the internal validation results, confirming that Zone~6
 remains the most challenging zone across years.}
 \label{fig:ch3:perzone_f1_2017}

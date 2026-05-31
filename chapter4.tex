@@ -199,7 +199,7 @@ including the exact feature inputs to each meta-model.
 \begin{figure}[h]
 \centering
 \includegraphics[width=\textwidth]{figs/pipeline_comparison.png}
-\caption{Deployment pipeline comparison. \textbf{Pipeline~A} (left): RIPPER makes the
+\caption[Deployment pipeline comparison — Pipeline A vs B]{Deployment pipeline comparison. \textbf{Pipeline~A} (left): RIPPER makes the
 zone prediction; a Random Forest meta-model uses raw SCADA signals, RIPPER zone
 probabilities and margin to predict whether RIPPER was wrong. \textbf{Pipeline~B}
 (right): RIPPER probabilities feed into both DQN (as observation features) and the
@@ -226,7 +226,7 @@ achieves 99.4\%.
 
 \begin{table}[h]
 \centering
-\caption{Classification results for all models on the 2016 validation set (10,466
+\caption[Classification results — all models, both evaluation sets]{Classification results for all models on the 2016 validation set (10,466
 samples) and 2017 external test set (52,234 samples).}
 \label{tab:ch4:results}
 \small
@@ -256,7 +256,7 @@ FOIL (Chapter~3)       & 92.3\%  & 91.4\%  & 0.897 & 0.896 \\
 \begin{figure}[h]
 \centering
 \includegraphics[width=0.92\textwidth]{figs/comparison_accuracy.png}
-\caption{Classification accuracy for all models on the 2016 validation set and 2017
+\caption[Classification accuracy — all models]{Classification accuracy for all models on the 2016 validation set and 2017
 external test set. The Random Forest on four raw SCADA signals achieves 100\% on both
 sets. Among DRL agents, DQN with guardrails leads at 97.7\% on the external test.}
 \label{fig:ch4:accuracy}
@@ -265,7 +265,7 @@ sets. Among DRL agents, DQN with guardrails leads at 97.7\% on the external test
 \begin{figure}[h]
 \centering
 \includegraphics[width=0.92\textwidth]{figs/comparison_f1.png}
-\caption{Macro-averaged F1 scores for all models on the 2016 validation set and 2017
+\caption[Macro-F1 comparison — all models]{Macro-averaged F1 scores for all models on the 2016 validation set and 2017
 external test set. The macro-F1 pattern mirrors the accuracy results, with A2C without
 guardrails showing a particularly low F1 due to its near-zero recall on Zone~8.}
 \label{fig:ch4:f1}
@@ -319,7 +319,7 @@ Zone~2 boundary imperfectly and relies on the guardrail to handle the clearest c
 \begin{figure}[h]
 \centering
 \includegraphics[width=0.75\textwidth]{figs/confusion_matrix_DQN.png}
-\caption{Normalised confusion matrix for DQN with physics guardrails on the 2017
+\caption[DQN confusion matrix — 2017 external test set]{Normalised confusion matrix for DQN with physics guardrails on the 2017
 external test set (52,234 samples). Each row shows the fraction of true-zone
 observations predicted as each zone. Zone~8 (full load) has the lowest recall (0.88);
 12\% of Zone~8 readings are predicted as Zone~7. Zone~5 (free wheeling) has recall
@@ -341,7 +341,7 @@ by the guardrails and how this changed the macro-F1 score on the validation set.
 
 \begin{table}[h]
 \centering
-\caption{Physics guardrail correction rates and macro-F1 improvement on the 2016
+\caption[Physics guardrail correction rates and F1 improvement]{Physics guardrail correction rates and macro-F1 improvement on the 2016
 validation set.}
 \label{tab:ch4:guardrails}
 \small
@@ -373,7 +373,7 @@ to be too small relative to the accuracy reward to produce a noticeable smoothin
 \begin{figure}[h]
 \centering
 \includegraphics[width=0.90\textwidth]{figs/avg_zone_jump.png}
-\caption{Average zone jump per timestep for all models on the 2016 validation set and
+\caption[Average zone jump — temporal smoothness comparison]{Average zone jump per timestep for all models on the 2016 validation set and
 2017 external test set. All models fall in the range 0.18--0.29, indicating similar
 smoothness regardless of algorithm type. The smoothness penalty in the DRL reward
 function did not produce a clear advantage over the memoryless MLP.}
@@ -383,7 +383,7 @@ function did not produce a clear advantage over the memoryless MLP.}
 \begin{figure}[h]
 \centering
 \includegraphics[width=0.90\textwidth]{figs/temporal_consistency.png}
-\caption{Temporal consistency (fraction of timesteps where the prediction matches the
+\caption[Temporal consistency — all models]{Temporal consistency (fraction of timesteps where the prediction matches the
 previous prediction) for all models on both evaluation sets. A2C with guardrails shows
 the highest consistency, but this reflects its tendency to predict the same common zone
 repeatedly rather than accurately tracking zone transitions.}
@@ -414,7 +414,7 @@ external test set of 52,234 readings.
 
 \begin{table}[h]
 \centering
-\caption{Pipeline comparison on the 2017 external test set (52,234 readings).}
+\caption[Pipeline comparison — 2017 external test set]{Pipeline comparison on the 2017 external test set (52,234 readings).}
 \label{tab:ch4:pipeline}
 \small
 \begin{tabular}{lcc}

@@ -482,5 +482,74 @@ higher accuracy in this study.
 
 Stable-Baselines3 \citep{raffin2021}, the DRL library used in this thesis, provides
 well-tested implementations of DQN, PPO, and A2C. The library is built on PyTorch and
-uses the same commands for all algorithms that makes it straightforward to compare different
-algorithms on the same environment.
+uses the same commands for all algorithms, making it straightforward to compare
+different algorithms on the same training setup.
+
+
+% ============================================================
+\section{Related Work}
+\label{sec:bg:relatedwork}
+% ============================================================
+
+This section reviews the existing work most relevant to this thesis, covering
+SCADA-based wind turbine monitoring, operating state classification, and reinforcement
+learning for wind energy applications.
+
+\subsection*{SCADA-Based Condition Monitoring for Wind Turbines}
+
+The use of SCADA data for wind turbine monitoring and maintenance has been studied
+extensively. \citet{pandit2024} provide a comprehensive review of this field, showing
+that SCADA analytics has been applied to power curve modelling, fault detection, anomaly
+detection, and performance degradation tracking. A key finding of this body of work is
+that most approaches either use a simplified three-region operating state model or
+omit state classification entirely when building condition monitoring models. This
+limits model accuracy, since the turbine behaves according to fundamentally different
+physical laws in partial load versus full load versus standby.
+
+\subsection*{Operating State Classification}
+
+The standard framework in the literature divides wind turbine operation into three
+regions: below cut-in (standby), partial load, and full load \citep{manwell2009}. This
+three-region model is well-established and underpins most power curve models and control
+algorithms, but it does not capture the transition states that occur during startup,
+shutdown, and generator engagement. These transient states are physically different from
+steady operation and cause significant misclassification in models that treat them as
+normal operating data. A detailed, physics-consistent zone framework that explicitly
+distinguishes transition states has not, to the best of the author's knowledge, been
+systematically developed and evaluated prior to the first study in this thesis
+\citep{indrekvam2026}.
+
+\subsection*{Physics-Informed Machine Learning for Wind Energy}
+
+There is growing interest in combining physics knowledge with data-driven methods for
+wind turbine modelling. \citet{gijon2024} proposed a hybrid semi-parametric model for
+power prediction that combines a physics-based submodel with a data-driven residual
+model, achieving 37\% higher accuracy than a physics-only approach while remaining
+interpretable through SHAP value analysis. \citet{hong2025} demonstrated that embedding
+physical constraints into the training process of a SCADA anomaly detector produces
+more reliable and interpretable outlier removal than purely data-driven approaches.
+These studies motivate the physics-informed design of the zone framework in Chapter~3,
+where zone boundaries are derived from turbine control parameters rather than learned
+from data.
+
+\subsection*{Reinforcement Learning for Wind Energy}
+
+DRL has been applied primarily to wind turbine control rather than monitoring.
+\citet{xie2023} showed that a reinforcement learning approach can achieve competitive
+performance with conventional controllers for wind turbine torque and pitch control.
+\citet{didier2022} applied a DRL controller to blade pitch regulation on floating
+offshore wind turbines. These studies demonstrate the feasibility of DRL for wind energy
+applications, but focus on control rather than classification. The use of DRL for
+operational zone classification, as evaluated in Chapter~4 of this thesis, is to the
+best of the authors knowledge a novel application of these methods in the wind energy
+domain.
+
+\subsection*{Rule-Based Machine Learning for Industrial Applications}
+
+Rule-based machine learning methods such as RIPPER and FOIL have seen renewed interest
+as the demand for interpretable AI in safety-critical applications has grown
+\citep{nossig2024}. \citet{nossig2024} showed that RIPPER and FOIL can scale to large,
+high-dimensional datasets using a modularity approach that combines clustering with
+rule induction, achieving substantial speedups while preserving the full interpretability
+of the learned rules. No prior study has applied these methods to wind turbine
+operational zone classification on a physics-informed label set.
