@@ -319,10 +319,11 @@ Zone~2 boundary imperfectly and relies on the guardrail to handle the clearest c
 \begin{figure}[h]
 \centering
 \includegraphics[width=0.75\textwidth]{figs/confusion_matrix_DQN.png}
-\caption{Confusion matrix for DQN with physics guardrails on the 2017 external test set
-(52,234 samples). Zone~8 (full load) shows the lowest precision (0.87) and recall
-(0.88). Zone~5 (free wheeling) also has reduced recall (0.94). All other zones are
-classified with precision and recall above 0.97.}
+\caption{Normalised confusion matrix for DQN with physics guardrails on the 2017
+external test set (52,234 samples). Each row shows the fraction of true-zone
+observations predicted as each zone. Zone~8 (full load) has the lowest recall (0.88);
+12\% of Zone~8 readings are predicted as Zone~7. Zone~5 (free wheeling) has recall
+0.94; 6\% go to Zone~6. All other zones have recall above 0.94.}
 \label{fig:ch4:cm_dqn}
 \end{figure}
 
