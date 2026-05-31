@@ -233,29 +233,34 @@ and DRL for the same operational zone classification problem on the same dataset
 this comparison, practitioners have no clear guidance on which approach is most suitable
 for their situation. This thesis addresses both gaps directly.
 
+Taken together, these two gaps define the scope of this work. The overarching research problem is therefore: how can operational zones in a wind turbine
+be identified reliably from SCADA data, and which machine learning approach is most suitable
+depending on whether interpretability, accuracy, or the ability to adapt over time is the
+priority?
+
 \section{Research Questions}
 \label{sec:intro:rq}
 
 This thesis addresses the following research questions:
 
 \begin{enumerate}
-  \item Can physics-informed rule-based classifiers (RIPPER and FOIL) produce reliable
-        and interpretable operational zone classifications for wind turbine SCADA data,
-        and how well do they generalise from one year of data to the next?
+  \item How accurately and interpretably do physics-informed rule-based classifiers
+        (RIPPER and FOIL) identify operational zones from wind turbine SCADA data,
+        and how well do they generalise across different turbines and years?
 
-  \item Can standard supervised machine learning classifiers (Random Forest, Gradient
-        Boosting, Multi-Layer Perceptron (MLP)) improve on the accuracy of rule-based
-        methods for the same zone classification task?
+  \item How much accuracy improvement do supervised machine learning classifiers
+        (Random Forest, Gradient Boosting, MLP) achieve over rule-based methods for
+        the same zone classification task, and what explains this improvement?
 
-  \item Can deep reinforcement learning agents (DQN, PPO, A2C) learn to classify
-        operational zones, and in which situations are they preferable to supervised
-        classifiers despite potentially lower accuracy?
+  \item How effectively do deep reinforcement learning agents (DQN, PPO, A2C) learn
+        to classify operational zones, and under what deployment conditions are they
+        preferable to supervised classifiers?
 
-  \item What is the contribution of RIPPER-derived probability features to classification
-        accuracy, compared to using only the four raw SCADA signals?
+  \item What is the contribution of RIPPER-derived probability features to
+        classification accuracy, compared to using only the four raw SCADA signals?
 
-  \item Do physics-based guardrails applied to DRL agent outputs improve accuracy and
-        ensure compliance with known physical constraints?
+  \item To what extent do physics-based guardrails improve DRL agent accuracy and
+        physical compliance, and how does this vary across different DRL algorithms?
 \end{enumerate}
 
 \section{Scope and Delimitations}
