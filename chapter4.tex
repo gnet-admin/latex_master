@@ -35,7 +35,7 @@ learning approach that could adapt over time without requiring new labelled data
 
 Supervised classifiers address the first question directly. Random Forests and Gradient
 Boosting trees can find exact decision boundaries in continuous feature space, without the
-quantisation error introduced by binning. MLP neural networks can capture non-linear
+binning error introduced by binning. MLP neural networks can capture non-linear
 patterns that a combination of bin conditions cannot represent. The results in this
 chapter confirm that supervised classifiers substantially outperform the rule-based
 methods, reaching up to 100\% accuracy.
@@ -123,7 +123,11 @@ This discourages large, physically implausible transitions.
 \subsection{Physics Guardrails}
 \label{subsec:ch4:guardrails}
 
-Two hard rules derived from turbine physics are applied to the output of each DRL agent
+During initial experiments, weaker DRL agents such as PPO and A2C struggled to learn
+the clearest zone boundaries, particularly Zone~1 (safety lockdown) and Zone~2
+(lockdown transition), which are perfectly identifiable from blade pitch alone. Rather
+than relying on the agent to discover these boundaries through reward signals, two hard
+rules derived directly from turbine physics are applied to the output of each DRL agent
 after the agent makes its prediction. If the blade pitch angle is 86\textdegree\ or
 above, the agent's prediction is overridden to Zone~1 (safety lockdown). If the blade
 pitch angle is between 24\textdegree\ and 86\textdegree, the prediction is overridden to
@@ -147,7 +151,7 @@ which guards against late-training performance drops.
 
 Each algorithm uses two hidden layers of 256 units with ReLU activations.
 Algorithm-specific settings are: DQN uses a learning rate of $10^{-4}$, a replay buffer
-of 100,000 transitions, and a batch size of 128; PPO uses a learning rate of
+of 100,000 transitions, and a batch size of 128, PPO uses a learning rate of
 $3 \times 10^{-4}$, $n\_steps = 2048$, a batch size of 64, and 10 training epochs per
 update; A2C uses a learning rate of $3 \times 10^{-4}$ and $n\_steps = 32$. No
 hyperparameter search was performed; the focus of this study is on comparing algorithm
@@ -213,7 +217,7 @@ score) to detect residual DQN errors. Pipeline~B reduces flagged readings from 8
 \label{subsec:ch4:results:overall}
 
 Table~\ref{tab:ch4:results} shows the complete results for all models on both evaluation
-sets. The most striking result is that the Random Forest trained on only the four raw
+sets. The most important result is that the Random Forest trained on only the four raw
 SCADA signals achieves 100\% accuracy on both the 2016 validation set and the 2017
 external test set. The RF trained on all 13 features makes one error on the 2016
 validation set (99.99\% accuracy) and achieves 100\% on the 2017 external test. The
@@ -278,13 +282,13 @@ test, suggesting their learned policies generalise well to the following year.
 
 The 100\% accuracy of the raw-SCADA Random Forest is the most important single result in
 this chapter. It means that the eight operational zones defined in Chapter~3 are
-completely separable using only the four main SCADA signals, with no overlap whatsoever
+can be told apart perfectly using only the four main SCADA signals, with no overlap whatsoever
 across more than 62,000 data points spanning two different years. Every data point falls
-unambiguously into exactly one zone.
+clearly into exactly one zone.
 
 This result also explains why RIPPER and FOIL achieve only 91--92\%. The rule-based
 methods use discretized bin features rather than the raw continuous values, and the bins
-introduce quantisation error at zone boundaries. A Random Forest can place its split
+introduce binning error at zone boundaries. A Random Forest can place its split
 thresholds at the exact physical boundaries (for example, precisely 12\,m/s for the
 partial/full load transition), while RIPPER and FOIL are limited to the coarser bin
 boundaries defined in Section~\ref{sec:ch3:discretization}. The 8 percentage point
@@ -316,9 +320,9 @@ Zone~2 boundary imperfectly and relies on the guardrail to handle the clearest c
 \centering
 \includegraphics[width=0.75\textwidth]{figs/confusion_matrix_DQN.png}
 \caption{Confusion matrix for DQN with physics guardrails on the 2017 external test set
-(52,234 samples). The main errors occur near the Zone~5/6 boundary and for Zone~8 (full
-load operation), which accounts for the macro-F1 of 0.968 despite 97.7\% overall
-accuracy.}
+(52,234 samples). Zone~8 (full load) shows the lowest precision (0.87) and recall
+(0.88). Zone~5 (free wheeling) also has reduced recall (0.94). All other zones are
+classified with precision and recall above 0.97.}
 \label{fig:ch4:cm_dqn}
 \end{figure}
 

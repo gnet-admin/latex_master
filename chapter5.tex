@@ -3,30 +3,24 @@
 \label{chap:ch5}
 
 This chapter brings together the findings from Chapters~3 and~4 and discusses what they
-mean when considered jointly. The two studies address different aspects of the same
+mean when considered jointly. The word \textit{synthesis} here simply means combining the results from two separate
+studies into a single, broader picture. The two studies address different aspects of the same
 problem, operational zone classification for wind turbine SCADA data, and the results
 from one study directly inform the interpretation of the other.
-Figure~\ref{fig:ch5:lifecycle} shows how both studies connect to the full PHM digital
+Figure~\ref{fig:ch5:lifecycle} shows how both studies could connect to the full PHM digital
 twin lifecycle of a real offshore wind turbine, from raw SCADA data through zone
 classification and ML-based predictions to condition-based maintenance decisions.
 
 \begin{figure}[h]
 \centering
 \includegraphics[width=\textwidth]{figs/lifecycle_diagram.png}
-\caption{System architecture showing how the two studies in this thesis fit into the
-PHM digital twin lifecycle of a real offshore wind turbine. The SCADA system records 76
-variables every ten minutes, of which four are used in this thesis. Study~1 (Paper~1)
-applies physics-informed thresholds to classify each reading into one of nine operational
-zones using RIPPER and FOIL, outputting a zone label and eight RIPPER probabilities per
-reading. Study~2 (Paper~2) takes those labels and probabilities together with the raw
-SCADA signals and produces accurate zone predictions using RF, DQN, PPO, A2C and MLP
-(97.7--100\% accuracy). Zone predictions and zone definitions together enable the PHM
-digital twin to apply a different model per zone for power curve monitoring, fault
-detection and long-term degradation tracking. Anomaly alerts from the digital twin feed
-into maintenance decisions, which close the feedback loop back to the physical turbine.
-The dashed arrow to the right indicates a future direction: DQN could continue updating
-its policy from live reward signals during actual turbine operation, adapting as the
-turbine ages over time.}
+\caption{System architecture showing how both studies could connect to a real PHM
+digital twin for wind turbines. The SCADA system feeds four key signals to Study~1
+(Paper~1), which assigns each reading to a zone and outputs zone labels and RIPPER
+probabilities. Study~2 (Paper~2) uses these to produce accurate zone predictions
+(97.7--100\%). Together they enable a digital twin that monitors turbine health
+per zone, flags anomalies, and informs maintenance decisions. The dashed arrow
+indicates a future direction: DQN updating its policy from live sensor data.}
 \label{fig:ch5:lifecycle}
 \end{figure}
 
@@ -56,9 +50,9 @@ signals can be interpreted in two ways, both of which are correct and both of wh
 important.
 
 The first interpretation is about the zone framework. 100\% accuracy means that the
-eight zones present in the dataset are completely and unambiguously separated in the
-four-dimensional SCADA space. There is no overlap between zones, no region where an
-observation could reasonably belong to more than one zone. This is strong evidence that
+eight zones present in the dataset can be separated perfectly in the
+four-dimensional SCADA space. There is no overlap between zones, no point in the sensor space where it is
+unclear which zone an observation belongs to. This is strong evidence that
 the physics-informed zone definitions in Chapter~3 are well-specified. The zones capture
 genuinely different physical states rather than arbitrary partitions of the data.
 
@@ -97,11 +91,13 @@ run very fast, but like the rule-based models, they are static once trained.
 
 The DRL agents, particularly DQN, occupy a middle position. Accuracy is lower than
 supervised classifiers (97.7\% for DQN vs.\ 100\% for RF) but higher than rule-based
-methods. They are not more interpretable than supervised classifiers: the policy network
-is also a black box. Their main advantage is deployability in settings where labelled
-data is unavailable or where the model needs to update during operation. Physics guardrails
-add a layer of transparency to DRL outputs by providing explicit physical rules for the
-clearest cases.
+methods. They are not more interpretable than supervised classifiers in terms of their internal logic:
+the policy network is a black box. However, because the DRL agents in this thesis
+receive RIPPER probabilities as part of what they observe, the zone boundaries that
+RIPPER captures are implicitly present in the agent's inputs. The physics guardrails
+add a further visible layer by making the two clearest physical boundaries explicit
+and enforced. Their main advantage is deployability in settings where labelled data
+is unavailable or where the model needs to update during operation.
 
 \section{The Role of Physics in Machine Learning for PHM}
 \label{sec:ch5:physics}

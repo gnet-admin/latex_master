@@ -6,7 +6,7 @@ This chapter covers the technical background for both studies in this thesis. It
 with wind turbine physics and control, then moves to SCADA systems and condition
 monitoring, the digital twin concept, and the machine learning methods used in the two
 studies: rule-based classifiers, supervised classifiers, and deep reinforcement learning.
-Each section is written to be self-contained.
+Readers already familiar with a topic can move to the next section.
 
 % ============================================================
 \section{Wind Turbine Aerodynamics and Control}
@@ -63,7 +63,7 @@ important for avoiding misclassification of normal transient behaviour as faults
 \label{subsec:bg:control}
 
 Modern variable-speed wind turbines use two main control mechanisms: the blade pitch
-system and the generator torque controller. In partial load (Zone~7 in this thesis),
+system and the generator torque controller \citep{manwell2009}. In partial load (Zone~7 in this thesis),
 blade pitch is held fixed at approximately zero degrees, the position that gives the best
 aerodynamic efficiency, while generator torque is adjusted to keep the tip speed ratio at
 its optimal value as wind speed changes. This is called torque control.
@@ -112,7 +112,7 @@ is sufficient to identify all operational zones with 100\% accuracy.
 \label{subsec:bg:scada:closedloop}
 
 A key challenge with SCADA data that is often overlooked in the machine learning
-literature is that it comes from a closed-loop control system. The turbine does not
+literature is that it comes from a closed-loop control system \citep{pandit2024}. The turbine does not
 passively observe the wind and report what happens. It actively responds to changing
 conditions through its pitch and torque controllers. This means that many SCADA variables
 are outputs of the control system rather than independent measurements of a physical
@@ -297,7 +297,7 @@ to understand and trust the classification.
 
 A key limitation is that rule-based methods require discretized inputs. Continuous sensor
 values like wind speed or rotor RPM must be converted into discrete bins before the rules
-can be learned. This introduces quantisation error: observations near a bin boundary may
+can be learned. This introduces binning error: observations near a bin boundary may
 end up in the wrong bin and be classified incorrectly. As shown in Chapter~4, this is the
 main reason why RIPPER and FOIL reach around 91--92\% accuracy while a Random Forest
 using the same four continuous features achieves 100\%. Despite this limitation,
@@ -385,7 +385,7 @@ with no effect on the results.
 \subsection{The Reinforcement Learning Framework}
 \label{subsec:bg:drl:framework}
 
-Reinforcement learning (RL) is a way of learning through interaction. An agent observes
+Reinforcement learning (RL) is a way of learning through interaction \citep{raffin2021}. An agent observes
 the current state of an environment, selects an action, receives a reward signal
 indicating how good the action was, and then observes the new state. The goal is to learn
 a policy, a mapping from states to actions, that maximises the total reward received over
@@ -432,12 +432,12 @@ probability of actions that led to high rewards. The problem with simple policy 
 methods is that large updates can destabilise training, sometimes causing the policy to
 collapse to a poor solution it cannot recover from.
 
-PPO addresses this with a clipped objective function that limits how much the policy can
-change at each update step, using a clipping parameter $\varepsilon$ (typically 0.1 to
-0.2). If the ratio of new to old action probabilities moves outside the range
-$[1-\varepsilon,\, 1+\varepsilon]$, the gradient is clipped to zero and the update
-stops. This conservative update rule makes PPO much more stable than earlier policy
-gradient methods while staying simple to implement.
+PPO addresses this by putting a limit on how much the policy is allowed to change at
+each training step. The limit works by comparing old and new action probabilities
+using a parameter $\varepsilon$ (typically 0.1 to 0.2): if the change would push the
+ratio of new to old probabilities outside $[1-\varepsilon,\, 1+\varepsilon]$, the
+update is stopped. This makes PPO much more stable than earlier policy gradient
+methods while remaining simple to implement.
 
 \subsection{Advantage Actor-Critic (A2C)}
 \label{subsec:bg:a2c}
@@ -482,5 +482,5 @@ higher accuracy in this study.
 
 Stable-Baselines3 \citep{raffin2021}, the DRL library used in this thesis, provides
 well-tested implementations of DQN, PPO, and A2C. The library is built on PyTorch and
-follows a consistent interface that makes it straightforward to compare different
+uses the same commands for all algorithms that makes it straightforward to compare different
 algorithms on the same environment.

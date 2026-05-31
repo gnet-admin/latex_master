@@ -14,9 +14,12 @@ This thesis develops and evaluates methods for classifying wind turbine operatin
 states, referred to as operational zones, from SCADA sensor data. The work is structured
 as two connected studies. The first study defines nine operational zones based on turbine
 physics and trains rule-based classifiers (RIPPER and FOIL) to identify these zones
-automatically. The second study takes the same zones and compares deep reinforcement
-learning (DRL) agents (DQN, PPO, A2C) with supervised machine learning classifiers
-(Random Forest, Gradient Boosting, MLP) on the same task.
+automatically. The rules are physically interpretable: an operator can read them and
+verify that they match known turbine behaviour. The second study then asks whether
+accuracy can be pushed higher by methods that work directly with continuous sensor
+values rather than with the discretized bins that rule-based classifiers require. It
+compares deep reinforcement learning (DRL) agents (DQN, PPO, A2C) with supervised
+machine learning classifiers (Random Forest, Gradient Boosting, MLP) on the same task.
 
 A key finding of the second study is that a Random Forest trained on only four raw SCADA
 signals achieves 100\% accuracy on both the 2016 validation set and an independent 2017

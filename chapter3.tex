@@ -23,10 +23,10 @@ The starting point for this study is a practical problem: wind turbine SCADA dat
 be analysed reliably without knowing which operating state the turbine is in. A power
 curve model that mixes data from partial load and full load will be inaccurate for both.
 A fault detection system that cannot tell the difference between a zone transition and a
-genuine anomaly will generate constant false alarms. The aim of this study is to build a
+genuine anomaly could generate constant false alarms. The aim of this study is to build a
 framework that solves this problem in a way that is both accurate and interpretable.
 
-Interpretability is a specific requirement here, not just a nice-to-have. The zone
+Interpretability is a specific requirement here. The zone
 definitions must be explainable to a turbine operator or maintenance engineer who may not
 have a machine learning background. If the classification rules cannot be read and checked
 by a domain expert, it is very difficult to verify that they are correct or to diagnose
@@ -35,7 +35,10 @@ because they produce readable IF--THEN rules that can be checked against known t
 physics.
 
 A second aim of this study is to produce a set of physics-informed zone labels that can
-serve as training data for the machine learning models in Chapter~4. The zone framework
+serve as the basis for the machine learning experiments in Chapter~4. While this
+connection to a follow-up study was not part of the original design of Paper~1, the
+zone labels are a natural reusable output of any physics-informed classification
+framework. The zone framework
 is therefore both the output of this study and an input to the next. The quality of the
 zone labels directly determines the quality of every model trained on them.
 
@@ -75,33 +78,32 @@ threshold rules applied to the four main SCADA variables. The threshold values a
 derived from the known control parameters of the turbine rather than from statistical
 analysis of the data. This means the zone boundaries are fixed before looking at the
 SCADA measurements, which avoids any risk of the labelling procedure overfitting to the
-specific dataset. Figure~\ref{fig:ch3:geometry_rpm} shows how all nine zones appear in
-the wind speed versus rotor RPM feature space for the 2016 training data.
+specific dataset. Figure~\ref{fig:ch3:geometry_rpm} shows how the eight operational zones present in the
+2016 training data appear in the wind speed versus rotor RPM feature space.
 
 \begin{figure}[h]
 \centering
 \includegraphics[width=0.90\textwidth]{figs/geometry_2016_wind_rpm.png}
-\caption{Wind speed versus rotor RPM for all 2016 training observations, coloured by
-operational zone. Each zone occupies a clearly defined region of the feature space.
-Zone~6 (generator engagement) is the narrow horizontal band at approximately 11.0--11.2
-RPM, which explains why it is the most difficult zone to classify correctly with
-discretized bin features.}
+\caption{Wind speed versus rotor RPM for the eight operational zones present in the
+2016 training data. Each zone occupies a clearly defined region. Zone~5 (free wheeling)
+and Zone~6 (generator engagement) share a very narrow RPM band, which makes them the
+most difficult zones to separate with discretized bin features.}
 \label{fig:ch3:geometry_rpm}
 \end{figure}
 
 \subsection{Lockdown and Transition Regimes (Zones 1 and 2)}
 \label{subsec:ch3:zones:12}
 
-\textbf{Zone~1 --- Safety Lockdown}
+\textbf{Zone~1 - Safety Lockdown}
 (\texttt{Blades\_Pitch\_Angle} $\geq$ 86\textdegree): the turbine is intentionally
 prevented from producing power. The blade pitch angle is held at approximately
 90\textdegree, the feathered position where the blades present the smallest possible
 aerodynamic surface to the wind. This state is typically triggered by external constraints
 such as grid saturation or scheduled maintenance. The pitch threshold of 86\textdegree\
-is conservative: any reading above this value unambiguously indicates lockdown regardless
+is conservative: any reading above this value clearly indicates lockdown regardless
 of wind speed or rotor speed.
 
-\textbf{Zone~2 --- Transition to or from Safety Lockdown}
+\textbf{Zone~2 - Transition to or from Safety Lockdown}
 (\texttt{Blades\_Pitch\_Angle} $<$ 86\textdegree, in transition): blade pitch is
 actively adjusted as the turbine moves between normal operating zones and the lockdown
 state. Transitions into or out of lockdown span more than one ten-minute SCADA interval,
@@ -112,13 +114,13 @@ produces misleading sensor readings in any model that assumes steady-state condi
 \subsection{Standby and Transition Below Cut-In Wind Speed (Zones 3 and 4)}
 \label{subsec:ch3:zones:34}
 
-\textbf{Zone~3 --- Standby (Low-Wind Shutdown)}
+\textbf{Zone~3 - Standby (Low-Wind Shutdown)}
 (\texttt{Amb\_Wind\_Speed} $<$ 4\,m/s, \texttt{Blades\_Pitch\_Angle} $=$ 24\textdegree,
 \texttt{Rtr\_RPM} $=$ 0): when wind speed is below cut-in, the turbine is fully braked.
 The rotor does not move and blade pitch is fixed at approximately 24\textdegree. This is
 a clearly defined state that is easy to identify from the rotor speed reading alone.
 
-\textbf{Zone~4 --- Transition to or from Standby}
+\textbf{Zone~4 - Transition to or from Standby}
 (\texttt{Amb\_Wind\_Speed} $<$ 4\,m/s, \texttt{Blades\_Pitch\_Angle} $\approx$
 24\textdegree, \texttt{Rtr\_RPM} $>$ 0): during startup or shutdown at low wind speeds,
 the brakes are released and the rotor begins to move, but wind conditions are not yet
@@ -129,7 +131,7 @@ appears briefly when the turbine starts or stops under marginal wind conditions.
 \subsection{Transitions to Power Production (Zones 5 and 6)}
 \label{subsec:ch3:zones:56}
 
-\textbf{Zone~5 --- Free Wheeling (Below Cut-In)}
+\textbf{Zone~5 - Free Wheeling (Below Cut-In)}
 (\texttt{Amb\_Wind\_Speed} $<$ 4\,m/s,
 0\textdegree $<$ \texttt{Blades\_Pitch\_Angle} $<$ 24\textdegree,
 0 $<$ \texttt{Rtr\_RPM} $<$ 11): as the turbine prepares to engage the generator,
@@ -137,7 +139,7 @@ blade pitch moves toward zero degrees to maximise aerodynamic efficiency. The ro
 slowly but the generator is not yet connected to the grid. This free-wheeling state can
 also occur when wind speed drops below cut-in while the turbine is shutting down.
 
-\textbf{Zone~6 --- Generator Engagement (Below Cut-In)}
+\textbf{Zone~6 - Generator Engagement (Below Cut-In)}
 (\texttt{Amb\_Wind\_Speed} $<$ 4\,m/s,
 \texttt{Blades\_Pitch\_Angle} $=$ 0\textdegree,
 11.0 $<$ \texttt{Rtr\_RPM} $\leq$ 11.2): at approximately 11.0--11.2\,RPM, the rotor
@@ -150,7 +152,7 @@ rule-based classifiers.
 \subsection{Partial Load and Full Load Operation (Zones 7 and 8)}
 \label{subsec:ch3:zones:78}
 
-\textbf{Zone~7 --- Partial Load Operation}
+\textbf{Zone~7 - Partial Load Operation}
 (4 $\leq$ \texttt{Amb\_Wind\_Speed} $\leq$ 12\,m/s,
 \texttt{Blades\_Pitch\_Angle} $\approx$ 0\textdegree,
 11.2 $<$ \texttt{Rtr\_RPM} $<$ 14.8): the most common operating state, accounting for
@@ -160,7 +162,7 @@ power increases approximately as the cube of wind speed. The control system adju
 generator torque to maintain the optimal tip speed ratio. Both RIPPER and FOIL achieve
 high accuracy in Zone~7 due to the stability of this zone.
 
-\textbf{Zone~8 --- Full Load Operation}
+\textbf{Zone~8 - Full Load Operation}
 (12 $<$ \texttt{Amb\_Wind\_Speed} $<$ 25\,m/s,
 \texttt{Blades\_Pitch\_Angle} $>$ 0\textdegree,
 11.8 $\leq$ \texttt{Rtr\_RPM} $<$ 15): above rated wind speed, the turbine maintains
@@ -170,7 +172,7 @@ approximately 2000\,kW. The non-zero blade pitch combined with high wind speed i
 clear signature that makes Zone~8 straightforward to identify. Zone~8 accounts for
 approximately 5.5\% of the validation data.
 
-\textbf{Zone~9 --- High-Wind Safety Shutdown}
+\textbf{Zone~9 - High-Wind Safety Shutdown}
 (\texttt{Amb\_Wind\_Speed} $>$ 25\,m/s): at extreme wind speeds the turbine shuts down
 automatically to prevent structural overload. Blades are pitched toward 90\textdegree\
 and the rotor is braked to a stop. No observations corresponding to Zone~9 were found in

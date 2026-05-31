@@ -15,7 +15,9 @@ monitoring in a PHM digital twin. The work was structured as two connected studi
 
 The first study (Chapter~3) defined nine operational zones based on turbine physics and
 trained RIPPER and FOIL rule-based classifiers to identify these zones from four SCADA
-variables. Eight of the nine zones are present in the dataset. RIPPER achieved 92.6\%
+variables. Eight of the nine zones are present in the dataset; the ninth (high-wind
+safety shutdown above 25\,m/s) does not occur in the data used in this thesis. RIPPER
+achieved 92.6\%
 accuracy on internal validation and 91.2\% on an independent 2017 test set. FOIL achieved
 92.3\% and 91.4\% respectively. Both classifiers generalised well across years and
 produced interpretable rules that align with known turbine control logic.
@@ -41,9 +43,9 @@ classifiers identify operational zones, and how well do they generalise?}
 RIPPER and FOIL both achieve around 91--93\% accuracy on both internal validation
 and an independent external test set from a different turbine and a different year.
 The rules are physically interpretable and can be verified against known turbine physics.
-Errors are concentrated in transition zones near the generator engagement speed (Zone~6)
-and are a consequence of discretization rather than problems with the zone definitions.
-Both classifiers generalise well across years.
+Errors are concentrated mainly in Zone~5 (free wheeling) and Zone~6 (generator
+engagement), which share a very narrow RPM band, making them difficult to separate with
+discretized bin features. Both classifiers generalise well across years.
 
 \subsection*{RQ2: How much accuracy improvement do supervised classifiers achieve over
 rule-based methods, and what explains this improvement?}
@@ -74,8 +76,7 @@ Random Forest on four raw SCADA signals achieves 100\%, the same as the RF on al
 features (which makes one error on the 2016 validation set). The MLP on raw SCADA
 achieves 99.5\%, marginally better than the MLP on full features (99.4\%). The raw SCADA
 signals already contain all the information needed to identify the zones correctly. The
-RIPPER meta-features may still add value for DRL agents as a form of domain knowledge
-in the state representation, but this was not tested as an ablation in this study.
+RIPPER meta-features may still add value for DRL agents as part of what the agent observes at each step, but this was not directly tested in this study.
 
 \subsection*{RQ5: To what extent do physics guardrails improve DRL agent accuracy,
 and how does the impact vary across DRL algorithms?}
@@ -151,8 +152,8 @@ reduces false alarms and improves fault detection rates. This would directly dem
 the value of the zone classification framework for the PHM digital twin application that
 motivated this thesis.
 
-Finally, an ablation study on the DRL state representation would clarify the role of the
-RIPPER meta-features. Training DQN with and without the RIPPER probability features in
+Finally, a targeted experiment removing the RIPPER meta-features from the DRL state
+would clarify their role. Training DQN with and without the RIPPER probability features in
 its observation would show whether these features help the agent learn faster or achieve
 higher accuracy, or whether the four raw SCADA signals are sufficient for DRL as well as
 for supervised classifiers.

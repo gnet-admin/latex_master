@@ -4,12 +4,12 @@
 
 The world is building more wind turbines than ever before. Wind energy is one of
 the fastest-growing sources of electricity, and offshore wind in particular has expanded
-rapidly over the last decade. As turbines get larger and wind farms become more complex,
+rapidly over the last decade \citep{manwell2009}. As turbines get larger and wind farms become more complex,
 the challenge of keeping them running reliably and efficiently has become more important
 and more difficult.
 
 Every modern wind turbine is equipped with a Supervisory Control and Data Acquisition
-(SCADA) system that records many measurements: wind speed, rotor speed, blade pitch angle,
+(SCADA) system that records many measurements \citep{pandit2024}: wind speed, rotor speed, blade pitch angle,
 generator power output, temperatures, humidity and much more. This data is the primary
 window into the performance and health of the turbine. But the data is not always easy
 to interpret. A reading of 500~kW on the power output sensor means something very
@@ -92,26 +92,26 @@ interpretation. The zone framework developed in the first study of this thesis \
 defines nine zones:
 
 \begin{itemize}
-  \item \textbf{Zone 1 --- Safety Lockdown}
+  \item \textbf{Zone 1 - Safety Lockdown}
         (\texttt{Blades\_Pitch\_Angle} $\geq$ 86\textdegree):
         the turbine is intentionally prevented from producing power. Blade pitch is held
         at or above 86\textdegree, typically triggered by external constraints such as
         grid saturation or scheduled maintenance.
 
-  \item \textbf{Zone 2 --- Transition to or from Safety Lockdown}
+  \item \textbf{Zone 2 - Transition to or from Safety Lockdown}
         (\texttt{Blades\_Pitch\_Angle} $<$ 86\textdegree):
         blade pitch is actively adjusted as the turbine moves between operational zones
         and the lockdown state. Transitions span more than one SCADA sampling interval,
         producing intermediate readings in this zone.
 
-  \item \textbf{Zone 3 --- Standby (Low-Wind Shutdown)}
+  \item \textbf{Zone 3 - Standby (Low-Wind Shutdown)}
         (\texttt{Amb\_Wind\_Speed} $<$ 4\,m/s,
          \texttt{Blades\_Pitch\_Angle} $=$ 24\textdegree,
          \texttt{Rtr\_RPM} $=$ 0):
         wind speed is below the cut-in threshold, the turbine is fully braked, blade
         pitch is fixed at approximately 24\textdegree, and no power is produced.
 
-  \item \textbf{Zone 4 --- Transition to or from Standby}
+  \item \textbf{Zone 4 - Transition to or from Standby}
         (\texttt{Amb\_Wind\_Speed} $<$ 4\,m/s,
          \texttt{Blades\_Pitch\_Angle} $\approx$ 24\textdegree,
          \texttt{Rtr\_RPM} $>$ 0):
@@ -119,14 +119,14 @@ defines nine zones:
         the rotor begins to move while pitch remains near 24\textdegree. These are
         control-driven transient states rather than steady operation.
 
-  \item \textbf{Zone 5 --- Free Wheeling (Below Cut-In)}
+  \item \textbf{Zone 5 - Free Wheeling (Below Cut-In)}
         (\texttt{Amb\_Wind\_Speed} $<$ 4\,m/s,
          0\textdegree $<$ \texttt{Blades\_Pitch\_Angle} $<$ 24\textdegree,
          0 $<$ \texttt{Rtr\_RPM} $<$ 11):
         the rotor spins freely at low speed without generator engagement. Blade pitch
         gradually decreases toward 0\textdegree as wind speed increases.
 
-  \item \textbf{Zone 6 --- Generator Engagement (Below Cut-In)}
+  \item \textbf{Zone 6 - Generator Engagement (Below Cut-In)}
         (\texttt{Amb\_Wind\_Speed} $<$ 4\,m/s,
          \texttt{Blades\_Pitch\_Angle} $=$ 0\textdegree,
          11.0 $<$ \texttt{Rtr\_RPM} $\leq$ 11.2):
@@ -134,7 +134,7 @@ defines nine zones:
         11.0--11.2\,RPM. Rotor speed remains nearly constant while torque and power
         begin to increase.
 
-  \item \textbf{Zone 7 --- Partial Load Operation}
+  \item \textbf{Zone 7 - Partial Load Operation}
         (4 $\leq$ \texttt{Amb\_Wind\_Speed} $\leq$ 12\,m/s,
          \texttt{Blades\_Pitch\_Angle} $=$ 0\textdegree,
          11.2 $<$ \texttt{Rtr\_RPM} $<$ 14.8):
@@ -142,7 +142,7 @@ defines nine zones:
         power output increases following the cubic power law. This is the most common
         operating state, accounting for approximately 51\% of observations in the dataset.
 
-  \item \textbf{Zone 8 --- Full Load Operation}
+  \item \textbf{Zone 8 - Full Load Operation}
         (12 $<$ \texttt{Amb\_Wind\_Speed} $<$ 25\,m/s,
          \texttt{Blades\_Pitch\_Angle} $>$ 0\textdegree,
          11.8 $\leq$ \texttt{Rtr\_RPM} $<$ 15):
@@ -151,12 +151,12 @@ defines nine zones:
         and power output are regulated to approximately constant values
         (around 15\,RPM and 2000\,kW respectively).
 
-  \item \textbf{Zone 9 --- High-Wind Safety Shutdown}
+  \item \textbf{Zone 9 - High-Wind Safety Shutdown}
         (\texttt{Amb\_Wind\_Speed} $>$ 25\,m/s):
         at extreme wind speeds the turbine automatically shuts down to prevent structural
         overload. Blades are pitched toward 90\textdegree and the rotor is braked to a
         stop. No observations corresponding to this zone were found in the dataset used
-        in this thesis, so the classification problem in practice covers Zones 1--8.
+        in this thesis, so the classification problem in practice covers Zones 1 to 8 in practice.
 \end{itemize}
 
 Getting zone classification right matters because the physical behaviour of the turbine
@@ -193,16 +193,17 @@ value.''}
 For a digital twin to work well, its models need to be context-aware. A power curve
 model designed for Zone~7 (partial load) is not the right model for Zone~8 (full load),
 even though both zones involve the turbine producing power. Operational zone
-classification is therefore the prerequisite for making every other model in the digital
-twin context-aware. This thesis focuses specifically on this prerequisite task.
+classification is therefore the necessary foundation for making every other model in the
+digital twin context-aware. This thesis focuses specifically on this task.
 
 \section{Approaches to Zone Classification}
 \label{sec:intro:approaches}
 
-Several approaches to classifying wind turbine operating states appear in the literature.
+Several approaches to classifying wind turbine operating states appear in the literature
+\citep{pandit2024}.
 Physics-based threshold rules are the most direct and are already used in many SCADA
-monitoring systems. However, hand-crafted rules require expert knowledge and do not
-automatically handle sensor noise or transition states.
+monitoring systems \citep{manwell2009}. However, hand-crafted rules require expert knowledge
+and do not automatically handle sensor noise or transition states.
 
 Rule-based machine learning algorithms, such as Repeated Incremental Pruning to Produce
 Error Reduction (RIPPER) \citep{cohen1995} and First-Order Inductive Learner (FOIL)
@@ -216,17 +217,25 @@ neural networks, typically achieve higher accuracy than rule-based methods but p
 predictions without a human-readable explanation. Deep Reinforcement Learning (DRL) is a
 further alternative that does not require labelled training data at all: a DRL agent
 learns by receiving reward signals indicating whether its predictions are correct. This
-makes DRL a candidate for settings where expert labelling is unavailable or too expensive.
+makes DRL a candidate for settings where expert labelling is unavailable or where having a human expert manually label
+thousands of readings is not practical.
 The second study in this thesis evaluates all of these approaches side by side.
+
+The closest existing work to this thesis focuses on SCADA-based analytics for wind turbine
+performance monitoring \citep{pandit2024} and on DRL for wind turbine torque and pitch
+control \citep{xie2023, didier2022}. However, detailed physics-consistent zone
+classification covering transition states, and the systematic comparison of rule-based,
+supervised, and DRL methods on the same classification problem, have not been addressed
+in the literature. This gap is the starting point for the two studies in this thesis.
 
 \section{Research Gap and Motivation}
 \label{sec:intro:gap}
 
-Despite a large body of work on wind turbine SCADA analysis, two specific gaps motivate
-this thesis. First, most existing studies either use very simple operating state
-definitions, separating only power production from standby, or use no state
-classification at all. A detailed, physics-consistent zone framework that includes the
-critical transition states has not been systematically developed and evaluated.
+Despite a large body of work on wind turbine SCADA analysis \citep{pandit2024}, two
+specific gaps motivate this thesis. First, most existing studies either use very simple
+operating state definitions, separating only power production from standby \citep{manwell2009},
+or use no state classification at all. A detailed, physics-consistent zone framework that
+includes the critical transition states has not been systematically developed and evaluated.
 
 Second, no study has systematically compared rule-based methods, supervised classifiers,
 and DRL for the same operational zone classification problem on the same dataset. Without
@@ -277,7 +286,7 @@ The thesis does not evaluate true online learning. All DRL agents are trained in
 setting using historical data, not on a live turbine. The potential of DRL for continuous
 adaptation during deployment is discussed but not tested. The thesis also does not
 evaluate the downstream impact of zone classification on specific PHM tasks such as fault
-detection or power curve modelling; this is identified as an important direction for
+detection or power curve modelling, and this is identified as an important direction for
 future work.
 
 \section{Research Method}
@@ -306,7 +315,8 @@ internal validation set. This chronological split preserves the temporal structu
 data and evaluates generalisation in the direction of actual operational deployment.
 External generalisation is evaluated on the full 2017 dataset from Wind Turbine~11, a
 different turbine at the same wind farm, without any retraining or parameter adjustment.
-This cross-turbine, cross-year evaluation represents a genuine out-of-distribution test.
+This cross-turbine, cross-year evaluation tests how well the models work on data they
+have never seen, collected from a different turbine in a different year.
 
 All models are implemented in Python. Supervised classifiers and meta-models use
 scikit-learn \citep{pedregosa2011}. DRL agents are implemented with Stable-Baselines3
