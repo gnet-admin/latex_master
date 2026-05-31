@@ -104,15 +104,15 @@ The four SCADA variables most central to this thesis are ambient wind speed
 speed (\texttt{Rtr\_RPM\_Avg}, measured by an encoder on the main shaft), blade pitch
 angle (\texttt{Blades\_Pitch\_Angle}, the average pitch of all three blades), and grid
 power output (\texttt{Grid\_Prod\_Power}, the net electrical power delivered to the
-grid). These four variables together describe the main aerodynamic and electrical state
-of the turbine. As shown in Chapter~4, a classifier trained on these four variables alone
+grid) \citep{indrekvam2026}. These four variables together describe the main
+aerodynamic and electrical state of the turbine. As shown in Chapter~4, a classifier trained on these four variables alone
 is sufficient to identify all operational zones with 100\% accuracy.
 
 \subsection{Closed-Loop Data and Its Challenges}
 \label{subsec:bg:scada:closedloop}
 
 A key challenge with SCADA data that is often overlooked in the machine learning
-literature is that it comes from a closed-loop control system \citep{pandit2024}. The turbine does not
+literature is that it comes from a closed-loop control system \citep{indrekvam2026}. The turbine does not
 passively observe the wind and report what happens. It actively responds to changing
 conditions through its pitch and torque controllers. This means that many SCADA variables
 are outputs of the control system rather than independent measurements of a physical
@@ -189,7 +189,7 @@ with real sensor data. The definition adopted in this thesis comes from the Nati
 Academies of Sciences, Engineering, and Medicine \citeyearpar{nationalacademies2024}:
 \textit{``A set of virtual information constructs that mimics the structure, context, and
 behaviour of a natural, engineered, or social system; is dynamically updated with data
-from its physical counterpart; possesses predictive capabilities; and informs decisions
+from its physical twin; has a predictive capability; and informs decisions
 to realize value.''}
 
 For a wind turbine, a digital twin might include models of the power curve, the
@@ -301,10 +301,9 @@ can be learned. This introduces binning error: observations near a bin boundary 
 end up in the wrong bin and be classified incorrectly. As shown in Chapter~4, this is the
 main reason why RIPPER and FOIL reach around 91--92\% accuracy while a Random Forest
 using the same four continuous features achieves 100\%. Despite this limitation,
-rule-based methods remain an active area of research. \citet{nossig2024} recently showed
-that RIPPER and FOIL can scale to large, high-dimensional datasets using a modularity
-approach, keeping accuracy close to black-box models while preserving full
-interpretability.
+rule-based methods remain an active area of research. \citet{nossig2024} recently showed that RIPPER and FOIL can scale to large,
+high-dimensional datasets by combining clustering with rule induction, achieving a
+speedup of up to 44 times while preserving the full interpretability of the learned rules.
 
 A second limitation is that rule-based models are static. Once trained, they do not
 update when the turbine's behaviour changes. New rules must be learned from scratch on
@@ -464,8 +463,9 @@ Chapter~4.
 DRL has been applied to a growing range of industrial control and monitoring tasks. In
 wind energy, the most common use is active power and pitch control: training DRL agents
 to maximise energy output or reduce mechanical loads by directly controlling blade pitch
-and generator torque. \citet{xie2023} showed that a DRL agent could match or beat
-model-based controllers on this task while needing less detailed system knowledge.
+and generator torque. \citet{xie2023} showed that a reinforcement learning approach can achieve
+competitive performance with conventional controllers for wind turbine torque and
+pitch control, while adapting to real-time changes in system dynamics.
 \citet{didier2022} applied a similar approach to floating offshore wind turbines, using a
 trust region policy optimisation agent to control blade pitch in the full-load operating
 region, a more challenging setting where platform motion adds complexity beyond
