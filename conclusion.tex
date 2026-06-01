@@ -37,8 +37,9 @@ of DQN's remaining errors with only 14 false alarms across 52,234 test readings.
 \section{Answers to the Research Questions}
 \label{sec:conc:rqa}
 
-\subsection*{RQ1: How accurately and interpretably do physics-informed rule-based
-classifiers identify operational zones, and how well do they generalise?}
+\subsection*{RQ1: How accurately and interpretably do physics-informed rule-based classifiers
+(RIPPER and FOIL) identify operational zones from wind turbine SCADA data,
+and how well do they generalise across different turbines and years?}
 
 RIPPER and FOIL both achieve around 91--93\% accuracy on both internal validation
 and an independent external test set from a different turbine and a different year.
@@ -47,8 +48,9 @@ Errors are concentrated mainly in Zone~5 (free wheeling) and Zone~6 (generator
 engagement), which share a very narrow RPM band, making them difficult to separate with
 discretized bin features. Both classifiers generalise well across years.
 
-\subsection*{RQ2: How much accuracy improvement do supervised classifiers achieve over
-rule-based methods, and what explains this improvement?}
+\subsection*{RQ2: How much accuracy improvement do supervised machine learning classifiers
+(Random Forest, Gradient Boosting, MLP) achieve over rule-based methods for
+the same zone classification task, and what explains this improvement?}
 
 Supervised classifiers substantially outperform rule-based methods. A Random Forest
 achieves 100\% accuracy on both evaluation sets, compared to 91--93\% for the
@@ -58,8 +60,9 @@ rule-based methods: supervised classifiers work directly with continuous SCADA v
 and can find the exact zone boundaries, while RIPPER and FOIL are limited to coarser
 bin boundaries.
 
-\subsection*{RQ3: How effectively do DRL agents learn to classify operational zones,
-and under what conditions are they preferable to supervised classifiers?}
+\subsection*{RQ3: How effectively do deep reinforcement learning agents (DQN, PPO, A2C) learn
+to classify operational zones, and under what deployment conditions are they
+preferable to supervised classifiers?}
 
 DRL agents learn this task effectively. DQN with guardrails reaches 97.7\% accuracy,
 a result that is 6--7 percentage points better than the rule-based methods and only
@@ -69,7 +72,8 @@ physics rules, or where the model needs to update continuously during deployment
 Where labelled data is available and accuracy is the primary concern, a supervised
 classifier is the better choice.
 
-\subsection*{RQ4: What is the contribution of RIPPER meta-features to accuracy?}
+\subsection*{RQ4: What is the contribution of RIPPER-derived probability features to
+classification accuracy, compared to using only the four raw SCADA signals?}
 
 For supervised classifiers, the RIPPER meta-features contribute essentially nothing. The
 Random Forest on four raw SCADA signals achieves 100\%, the same as the RF on all 13
@@ -78,8 +82,8 @@ achieves 99.5\%, marginally better than the MLP on full features (99.4\%). The r
 signals already contain all the information needed to identify the zones correctly. The
 RIPPER meta-features may still add value for DRL agents as part of what the agent observes at each step, but this was not directly tested in this study.
 
-\subsection*{RQ5: To what extent do physics guardrails improve DRL agent accuracy,
-and how does the impact vary across DRL algorithms?}
+\subsection*{RQ5: To what extent do physics-based guardrails improve DRL agent accuracy
+and physical compliance, and how does this vary across different DRL algorithms?}
 
 The impact of physics guardrails varies substantially across algorithms. For A2C,
 guardrails improve macro-F1 by 0.269 (from 0.578 to 0.847), a large gain that makes
