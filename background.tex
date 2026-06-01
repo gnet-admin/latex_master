@@ -28,10 +28,10 @@ what its generator can take.
 Not all of this energy can be captured. If the turbine slowed the wind to a complete
 stop, no more air could flow through the rotor. If it did nothing, no energy would be
 taken out. The theoretical maximum fraction of wind power that can be captured is 16/27,
-approximately 59.3\%. This is known as the Betz limit, named after Albert Betz who
-derived it in 1919 \citep{manwell2009}. In practice, modern large wind turbines achieve a power coefficient ($C_p$)
-substantially below the Betz limit, typically reaching values of 0.45--0.50
-under optimal conditions \citep{manwell2009}.
+approximately 59.3\%. This is known as the Betz limit, named after Albert Betz \citep{manwell2009}.
+In practice, modern large wind turbines achieve a power coefficient ($C_p$)
+substantially below the Betz limit, reaching around 0.45 under optimal conditions
+\citep{manwell2009}.
 
 The power coefficient $C_p$ depends on two parameters: the tip speed ratio (TSR), which
 is the ratio of the blade tip speed to the wind speed, and the blade pitch angle. Each
@@ -44,13 +44,11 @@ deliberately reduces its aerodynamic efficiency by adjusting the blade pitch.
 \label{subsec:bg:regions}
 
 The operating range of a wind turbine is typically split into three main regions based on
-wind speed. Below the cut-in wind speed (approximately 3--4\,m/s for most modern
-turbines), the wind is too weak to produce useful power and the turbine stays in standby.
-Between cut-in and rated wind speed (typically in the range of 12--16\,m/s for modern
-turbines, and 12\,m/s for the turbine used in this thesis), the turbine operates in
+wind speed. Below the cut-in wind speed, the wind is too weak to produce useful power and the
+turbine stays in standby. Between cut-in and rated wind speed, the turbine operates in
 partial load, trying to capture as much energy as possible. Above rated wind speed up to
-the cut-out wind speed (typically 25\,m/s), the turbine operates in full load, actively
-limiting its power output to protect the drivetrain and generator from overload
+the cut-out wind speed, the turbine operates in full load, actively limiting its power
+output
 \citep{manwell2009}.
 
 These three regions are the foundation of the zone framework used in this thesis, but
@@ -94,9 +92,10 @@ identify.
 A wind turbine SCADA system records operational and environmental data at regular
 intervals throughout the turbine's life. Most modern turbines store data as ten-minute
 averages, alongside the minimum, maximum, and standard deviation of each variable over
-the same period. A typical turbine records many variables, covering wind speed and
-power output through to oil temperatures, bearing vibration, and grid frequency.
-For the EDP dataset used in this thesis, 76 SCADA variables are recorded \citep{pandit2024}. The ten-minute averaging interval is long enough to smooth out
+the same period \citep{pandit2019}. A typical turbine records many variables, covering
+wind speed and power output through to oil temperatures, bearing temperatures, and grid
+frequency \citep{pandit2024, pandit2019}.
+For the EDP dataset used in this thesis, 76 SCADA variables are recorded \citep{indrekvam2026}. The ten-minute averaging interval is long enough to smooth out
 short-term turbulent fluctuations while still being short enough to capture transitions
 between operating states.
 
@@ -190,7 +189,7 @@ Academies of Sciences, Engineering, and Medicine \citeyearpar{nationalacademies2
 \textit{``A set of virtual information constructs that mimics the structure, context, and
 behaviour of a natural, engineered, or social system; is dynamically updated with data
 from its physical twin; has a predictive capability; and informs decisions
-to realize value.''}
+that realize value.''}
 
 For a wind turbine, a digital twin might include models of the power curve, the
 drivetrain dynamics, structural loads on the tower and blades, and the expected thermal
@@ -223,8 +222,8 @@ from the real turbine. The digital twin needs a way to update its models using n
 operational data, ideally without requiring a human expert to re-label data every time a
 model needs refreshing. Recent work on hybrid physics and data-driven models for wind
 turbine power prediction shows that combining a physics submodel with a data-driven
-residual model achieves significantly higher accuracy than either approach alone, while
-remaining interpretable \citep{gijon2024}.
+residual model achieves 37\% higher accuracy than the physics-based model alone, while
+remaining interpretable \citep{gijon2025}.
 
 Third, the models in the digital twin need to be context-aware. A single global model of
 turbine behaviour is less useful than a set of zone-specific models that each describe
@@ -519,7 +518,7 @@ normal operating data. No existing study has taken this approach prior to this t
 \subsection*{Physics-Informed Machine Learning for Wind Energy}
 
 There is growing interest in combining physics knowledge with data-driven methods for
-wind turbine modelling. \citet{gijon2024} proposed a hybrid semi-parametric model for
+wind turbine modelling. \citet{gijon2025} proposed a hybrid semi-parametric model for
 power prediction that combines a physics-based submodel with a data-driven residual
 model, achieving 37\% higher accuracy than a physics-only approach while remaining
 interpretable through SHAP value analysis. \citet{hong2025} demonstrated that embedding

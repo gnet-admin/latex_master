@@ -2,15 +2,16 @@
 \chapter{Introduction}
 \label{chap:introduction}
 
-The rapid expansion of offshore wind energy has been one of the defining energy
-trends of recent decades \citep{didier2022}. Offshore wind in particular has grown
+Wind energy has re-emerged as one of the significant energy sources of recent
+decades \citep{manwell2009}, with offshore installations booming in recent years
+\citep{didier2022}. Offshore wind in particular has grown
 rapidly, with turbines becoming larger and wind farms more complex. As turbines get larger and wind
 farms become more complex, the challenge of keeping them running reliably and efficiently
 has become more important and more difficult.
 
-Every modern wind turbine is equipped with a Supervisory Control and Data Acquisition
-(SCADA) system that records many measurements \citep{pandit2024}: wind speed, rotor speed, blade pitch angle,
-generator power output, temperatures, humidity and much more. This data is the primary
+Wind turbines rely on a Supervisory Control and Data Acquisition (SCADA) system
+to gather real-time data \citep{pandit2024}: wind speed, rotor speed, blade pitch
+angle, generator power output, temperatures, and much more. This data is the primary
 window into the performance and health of the turbine. But the data is not always easy
 to interpret. A reading of 500~kW on the power output sensor means something very
 different if the turbine is ramping up from a standstill than if it has been running
@@ -58,9 +59,8 @@ This thesis calls this problem operational zone classification.
 SCADA, as mentioned, stands for Supervisory Control and Data Acquisition. In a wind
 turbine, the SCADA system serves two main roles: it controls the turbine (adjusting blade
 pitch, managing the grid connection, controlling yaw to face the wind) and it records data
-about how the turbine is performing. Most modern wind turbines store SCADA data as
-ten-minute averages of each measured variable, alongside standard deviations and minimum
-and maximum values over the same period. A typical wind turbine records a large number of variables \citep{pandit2024, pandit2019}.
+about how the turbine is performing. Most modern wind turbines store SCADA data as ten-minute averages \citep{pandit2024}.
+A typical wind turbine records a large number of variables \citep{pandit2024, pandit2019}.
 
 The dataset used in this thesis consists of SCADA data provided by EDP (Energias de
 Portugal) and covers two wind turbines at an offshore wind farm located off the west
@@ -186,7 +186,7 @@ adopted in this thesis, from the National Academies of Sciences, Engineering, an
 Medicine \citeyearpar{nationalacademies2024}, describes a digital twin as \textit{``a
 set of virtual information constructs that mimics the structure, context, and behaviour
 of a natural, engineered, or social system; is dynamically updated with data from its
-physical twin; has a predictive capability; and informs decisions to realize
+physical twin; has a predictive capability; and informs decisions that realize
 value.''}
 
 For a digital twin to work well, its models need to be context-aware. A power curve
@@ -201,7 +201,7 @@ digital twin context-aware. This thesis focuses specifically on this task.
 Multiple approaches to classifying wind turbine operating states have been explored.
 \citep{pandit2024} provides a comprehensive overview of SCADA-based methods for wind
 turbine monitoring.
-Physics-based threshold rules are the most direct and are already used in many SCADA
+Physics-based threshold rules are the most direct and are already used in SCADA
 monitoring systems \citep{pandit2024}. However, hand-crafted rules require expert knowledge
 and do not automatically handle sensor noise or transition states.
 
@@ -216,7 +216,7 @@ Supervised machine learning classifiers, such as Random Forests, Gradient Boosti
 neural networks, typically achieve higher accuracy than rule-based methods but produce
 predictions without a human-readable explanation. Deep Reinforcement Learning (DRL) is a
 further alternative that does not require labelled training data at all: a DRL agent
-learns by receiving reward signals indicating whether its predictions are correct. This
+learns by receiving reward signals indicating whether its predictions are correct \citep{mnih2015}. This
 makes DRL a candidate for settings where expert labelling is unavailable or where having a human expert manually label
 thousands of readings is not practical.
 The second study in this thesis evaluates all of these approaches side by side.
@@ -233,8 +233,8 @@ in the literature. This gap is the starting point for the two studies in this th
 
 Despite a large body of work on wind turbine SCADA analysis \citep{pandit2024}, two
 specific gaps motivate this thesis. First, most existing studies either use very simple
-operating state definitions, separating only power production from standby \citep{manwell2009},
-or use no state classification at all. A detailed, physics-consistent zone framework that
+operating state definitions, typically limited to the regions defined by the cut-in, rated,
+and cut-out wind speeds \citep{manwell2009}, or use no state classification at all. A detailed, physics-consistent zone framework that
 includes the critical transition states has not yet been addressed.
 
 Second, no study has systematically compared rule-based methods, supervised classifiers,
