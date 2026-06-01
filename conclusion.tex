@@ -15,7 +15,7 @@ monitoring in a PHM digital twin. The work was structured as two connected studi
 
 The first study (Chapter~3) defined nine operational zones based on turbine physics and
 trained RIPPER and FOIL rule-based classifiers to identify these zones from four SCADA
-variables. Eight of the nine zones are present in the dataset; the ninth (high-wind
+variables. Eight of the nine zones are present in the dataset. The ninth zone (high-wind
 safety shutdown above 25\,m/s) does not occur in the data used in this thesis. RIPPER
 achieved 92.6\%
 accuracy on internal validation and 91.2\% on an independent 2017 test set. FOIL achieved
@@ -100,7 +100,7 @@ consistent basis for comparison. The DRL agents and supervised classifiers share
 normalised feature set, so differences in accuracy cannot be attributed to data
 preprocessing differences. One potential internal validity concern is that DRL agents are
 evaluated using the best checkpoint saved during training rather than the final model
-weights; this provides a conservative estimate of each algorithm's peak performance but
+weights, which provides a conservative estimate of each algorithm's peak performance but
 introduces a dependency on when during training the best checkpoint was saved.
 
 \paragraph{External Validity.}

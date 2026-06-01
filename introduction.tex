@@ -2,9 +2,9 @@
 \chapter{Introduction}
 \label{chap:introduction}
 
-The world is building more wind turbines than ever before. Wind energy is one of
-the fastest-growing sources of electricity \citep{manwell2009}, and offshore wind in
-particular has expanded rapidly over the last decade. As turbines get larger and wind
+The global expansion of wind energy has been one of the defining energy trends
+of the last two decades \citep{didier2022}. Offshore wind in particular has grown
+rapidly, with turbines becoming larger and wind farms more complex. As turbines get larger and wind
 farms become more complex, the challenge of keeping them running reliably and efficiently
 has become more important and more difficult.
 
@@ -60,8 +60,7 @@ turbine, the SCADA system serves two main roles: it controls the turbine (adjust
 pitch, managing the grid connection, controlling yaw to face the wind) and it records data
 about how the turbine is performing. Most modern wind turbines store SCADA data as
 ten-minute averages of each measured variable, alongside standard deviations and minimum
-and maximum values over the same period. A typical wind turbine usually records somewhere
-between 50 and 100 different variables \citep{pandit2024}.
+and maximum values over the same period. A typical wind turbine records a large number of variables \citep{pandit2024, pandit2019}.
 
 The dataset used in this thesis consists of SCADA data provided by EDP (Energias de
 Portugal) and covers two wind turbines at an offshore wind farm located off the west
@@ -174,7 +173,7 @@ Prognostics and Health Management (PHM) is the field concerned with monitoring t
 health of industrial systems, predicting when they will fail, and planning maintenance
 accordingly. For wind turbines, PHM is especially important because turbines are often
 located in remote or offshore locations where unplanned maintenance is expensive and
-sometimes could be dangerous \citep{tavner2012}. Being able to predict a fault days,
+operationally challenging \citep{tavner2012}. Being able to predict a fault days,
 weeks or months in advance allows maintenance crews to plan visits efficiently and avoid
 unexpected downtime.
 
@@ -199,8 +198,9 @@ digital twin context-aware. This thesis focuses specifically on this task.
 \section{Approaches to Zone Classification}
 \label{sec:intro:approaches}
 
-Several approaches to classifying wind turbine operating states appear in the literature
-\citep{pandit2024}.
+Multiple approaches to classifying wind turbine operating states have been explored.
+\citep{pandit2024} provides a comprehensive overview of SCADA-based methods for wind
+turbine monitoring.
 Physics-based threshold rules are the most direct and are already used in many SCADA
 monitoring systems \citep{pandit2024}. However, hand-crafted rules require expert knowledge
 and do not automatically handle sensor noise or transition states.
@@ -235,7 +235,7 @@ Despite a large body of work on wind turbine SCADA analysis \citep{pandit2024}, 
 specific gaps motivate this thesis. First, most existing studies either use very simple
 operating state definitions, separating only power production from standby \citep{manwell2009},
 or use no state classification at all. A detailed, physics-consistent zone framework that
-includes the critical transition states has not been systematically developed and evaluated.
+includes the critical transition states has not yet been addressed.
 
 Second, no study has systematically compared rule-based methods, supervised classifiers,
 and DRL for the same operational zone classification problem on the same dataset. Without
@@ -293,7 +293,7 @@ future work.
 \label{sec:intro:method}
 
 This thesis employs an empirical, experimental research approach structured as two
-connected studies. No primary data was collected; all experiments use SCADA data provided
+connected studies. No primary data was collected. All experiments use SCADA data provided
 by EDP, described in Section~\ref{sec:intro:scada}. The dataset consists exclusively of
 machine sensor readings with no personal or identifiable information, and no ethical
 approval was required.

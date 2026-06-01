@@ -93,9 +93,9 @@ identify.
 A wind turbine SCADA system records operational and environmental data at regular
 intervals throughout the turbine's life. Most modern turbines store data as ten-minute
 averages, alongside the minimum, maximum, and standard deviation of each variable over
-the same period. A typical turbine records 50 to 100 variables, covering wind speed and
-power output through to oil temperatures, bearing vibration, and grid frequency
-\citep{pandit2024}. The ten-minute averaging interval is long enough to smooth out
+the same period. A typical turbine records many variables, covering wind speed and
+power output through to oil temperatures, bearing vibration, and grid frequency.
+For the EDP dataset used in this thesis, 76 SCADA variables are recorded \citep{pandit2024}. The ten-minute averaging interval is long enough to smooth out
 short-term turbulent fluctuations while still being short enough to capture transitions
 between operating states.
 
@@ -139,7 +139,7 @@ underperformance, because the turbine should be producing its rated power in tha
 Condition monitoring means continuously tracking a system's health using sensor data,
 with the goal of catching faults or degradation before they cause a failure. For wind
 turbines, SCADA-based condition monitoring is attractive because the data already exists
-and is collected automatically, with no extra instrumentation required \citep{pandit2024}.
+and is collected automatically, with no additional cost for instrumentation \citep{pandit2019}.
 Physics-informed approaches to SCADA data preprocessing, such as using physical
 constraints to identify and remove anomalous readings, have been shown to improve the
 reliability of models built on this data \citep{hong2025}.
@@ -162,8 +162,7 @@ correct zone classification to avoid false alarms.
 \label{subsec:bg:scada:powercurve}
 
 The wind turbine power curve describes the relationship between wind speed and power
-output and is one of the most widely used tools in wind turbine performance monitoring
-\citep{pandit2019}. A turbine producing less power than expected for a given wind speed
+output and is a widely used approach for assessing wind turbine performance \citep{pandit2019}. A turbine producing less power than expected for a given wind speed
 is either experiencing a fault, degradation, or unfavourable conditions such as high
 turbulence. Power curve analysis is a standard method for detecting long-term performance
 degradation.
@@ -514,10 +513,7 @@ three-region model is well-established and underpins most power curve models and
 algorithms, but it does not capture the transition states that occur during startup,
 shutdown, and generator engagement. These transient states are physically different from
 steady operation and cause significant misclassification in models that treat them as
-normal operating data. A detailed, physics-consistent zone framework that explicitly
-distinguishes transition states has not, to the best of the author's knowledge, been
-systematically developed and evaluated prior to the first study in this thesis
-\citep{indrekvam2026}.
+normal operating data. No existing study has taken this approach prior to this thesis \citep{indrekvam2026}.
 
 \subsection*{Physics-Informed Machine Learning for Wind Energy}
 
@@ -541,7 +537,7 @@ performance with conventional controllers for wind turbine torque and pitch cont
 offshore wind turbines. These studies demonstrate the feasibility of DRL for wind energy
 applications, but focus on control rather than classification. The use of DRL for
 operational zone classification, as evaluated in Chapter~4 of this thesis, is to the
-best of the authors knowledge a novel application of these methods in the wind energy
+best of the author's knowledge a novel application of these methods in the wind energy
 domain.
 
 \subsection*{Rule-Based Machine Learning for Industrial Applications}
